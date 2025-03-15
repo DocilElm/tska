@@ -1,0 +1,7 @@
+{
+    "name": "tska",
+    "creator": "DocilElm",
+    "description": "tska is a library used by other modules to enhance development in ct, it provides various useful features so the developer does not have to worry about implementing them.",
+    "version": "1.0.0",
+    "requires": ["requestV2"]
+}
