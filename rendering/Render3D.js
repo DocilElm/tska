@@ -94,7 +94,7 @@ export class Render3D {
     }
 
     /**
-     * - Draws a filled box at the given [AxisAlignedBB]
+     * - Renders a filled box at the given [AxisAlignedBB]
      * - NOTE: this does not setup anything in the stack, it directly draws.
      * @param {AxisAlignedBB} aabb 
      * @param {number} r Red (`0` - `255`)
@@ -217,7 +217,7 @@ export class Render3D {
     }
 
     /**
-     * - Draws an entity box with the given [x, y, z, w, h] values
+     * - Renders an entity box with the given [x, y, z, w, h] values
      * @param {number} x X axis
      * @param {number} y Y axis
      * @param {number} z Z axis
@@ -248,7 +248,7 @@ export class Render3D {
     }
 
     /**
-     * - Draws an entity filled box with the given [x, y, z, w, h] values
+     * - Renders an entity filled box with the given [x, y, z, w, h] values
      * @param {number} x X axis
      * @param {number} y Y axis
      * @param {number} z Z axis
@@ -262,7 +262,7 @@ export class Render3D {
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      */
-    static drawEntityBoxFilled(x, y, z, w, h, r, g, b, a, phase = false, translate = true, pticks = null) {
+    static renderEntityBoxFilled(x, y, z, w, h, r, g, b, a, phase = false, translate = true, pticks = null) {
         if (x == null) return
 
         const axis = AxisAlignedBBUtils.fromBounds(
@@ -316,7 +316,7 @@ export class Render3D {
     }
 
     /**
-     * - Draws a beacon beam
+     * - Renders a beacon beam
      * @param {number} x X axis
      * @param {number} y Y axis
      * @param {number} z Z axis
@@ -422,7 +422,7 @@ export class Render3D {
     }
 
     /**
-     * - Renders a waypoint at the specified location, draws an outline and filled block at the set position
+     * - Renders a waypoint at the specified location, also renders an outline and filled block at the set position
      * @param {string} text The string to draw at the waypoint
      * @param {number} x X axis
      * @param {number} y Y axis
