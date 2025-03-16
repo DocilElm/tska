@@ -423,6 +423,7 @@ export class Render3D {
 
     /**
      * - Renders a waypoint at the specified location, also renders an outline and filled block at the set position
+     * - Note: The text has different phase check because it the beam overrides it whenever its on `false`
      * @param {string} text The string to draw at the waypoint
      * @param {number} x X axis
      * @param {number} y Y axis
@@ -431,15 +432,16 @@ export class Render3D {
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
-     * @param {boolean} phase Whether to render the filled block through walls or not (`true` by default)
+     * @param {boolean} phase Whether to render the blocks and waypoint through walls or not (`true` by default)
+     * @param {boolean} stringPhase Whether to render the text through walls or not (`true` by default)
      */
-    static renderWaypoint(text, x, y, z, r, g, b, a, phase = true) {
+    static renderWaypoint(text, x, y, z, r, g, b, a, phase = true, stringPhase = true) {
         const block = World.getBlockAt(x, y, z)
 
         Render3D.outlineBlock(block, r, g, b, a, phase)
         Render3D.filledBlock(block, r, g, b, 50, phase)
-        Tessellator.drawString(text, x + 0.5, y + 5, z + 0.5, Renderer.WHITE, true)
         Render3D.renderBeaconBeam(x, y, z, r, g, b, a, phase)
+        Render3D.renderString(text, x + 0.5, y + 5, z + 0.5, [0, 0, 0, 80], true, 1, true, true, stringPhase)
     }
 
     /**
