@@ -6,6 +6,48 @@ mcRenderItemField.setAccessible(true)
 const MCRenderItem = mcRenderItemField.get(Client.getMinecraft())
 const MCRenderHelper = Java.type("net.minecraft.client.renderer.RenderHelper")
 
+const currentTitle = {
+    title: null,
+    subtitle: null,
+    time: null
+}
+let started = null
+
+const _drawTitle = (title, subtitle) => {
+    const [ x, y ] = [
+        Renderer.screen.getWidth() / 2,
+        Renderer.screen.getHeight() / 2
+    ]
+
+    Renderer.translate(x, y)
+    Renderer.scale(4, 4)
+    Renderer.drawStringWithShadow(title, -(Renderer.getStringWidth(title) / 2), -10)
+
+    if (!subtitle) return
+
+    Renderer.translate(x, y)
+    Renderer.scale(2, 2)
+    Renderer.drawStringWithShadow(subtitle, -(Renderer.getStringWidth(subtitle) / 2), 5)
+}
+
+const showTitleRegister = register("renderOverlay", () => {
+    if (!currentTitle.time) return
+    if (!started) started = Date.now()
+
+    const remainingTime = currentTitle.time - (Date.now() - started)
+
+    if (remainingTime <= 0) {
+        currentTitle.title = null
+        currentTitle.subtitle = null
+        currentTitle.time = null
+
+        started = null
+        showTitleRegister.unregister()
+    }
+
+    _drawTitle(currentTitle.title, currentTitle.subtitle)
+}).unregister()
+
 /**
  * - Rendering utilities for 2D (screen)
  */
@@ -140,7 +182,7 @@ export class Render2D {
      * @param {number} zlevel The z level to draw this at (`300` by default)
      * @returns 
      */
-    static drawHoveringText(textLines, mx, my, bgColor = [16, 0, 16, 240], borderColor = [80, 0, 255, 80], zlevel = 300) {
+    static drawHoveringText(textLines, mx = Client.getMouseX(), my = Client.getMouseY(), bgColor = [16, 0, 16, 240], borderColor = [80, 0, 255, 80], zlevel = 300) {
         if (!textLines) return
         if (textLines instanceof String) textLines = [textLines]
 
@@ -249,5 +291,18 @@ export class Render2D {
         Tessellator.enableDepth()
         MCRenderHelper./* enableStandardItemLighting */func_74519_b()
         GlStateManager./* enableRescaleNormal */func_179091_B()
+    }
+
+    /**
+     * - Draws a title with subtitle in the middle of the screen
+     * @param {string} title The title
+     * @param {?string} subtitle The subtitle for this Title
+     * @param {number} ms The amount of ms this title should be displayed for
+     */
+    static showTitle(title, subtitle, ms) {
+        currentTitle.title = title
+        currentTitle.subtitle = subtitle
+        currentTitle.time = ms
+        showTitleRegister.register()
     }
 }
