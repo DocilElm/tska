@@ -43,5 +43,5 @@ register("postGuiRender", () => {
     Render2D.drawHoveringText(["&bMy hovering", "&cText"])
 })
 
-// We can also shot a title to the player
+// We can also show a title to the player
 Render2D.showTitle("&aMy &cTest", "[Something]", 5000)
