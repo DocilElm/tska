@@ -1,3 +1,5 @@
+import { DGlStateManager } from "./DGlStateManager"
+
 const MCTessellator = Java.type("net.minecraft.client.renderer.Tessellator")./* getInstance */func_178181_a()
 const DefaultVertexFormats = Java.type("net.minecraft.client.renderer.vertex.DefaultVertexFormats")
 const WorldRenderer = MCTessellator./* getWorldRenderer */func_178180_c()
@@ -14,6 +16,7 @@ const currentTitle = {
 let started = null
 
 const _drawTitle = (title, subtitle) => {
+    if (!title) return
     const [ x, y ] = [
         Renderer.screen.getWidth() / 2,
         Renderer.screen.getHeight() / 2
@@ -190,10 +193,11 @@ export class Render2D {
         const screenHeight = Renderer.screen.getHeight()
         const fontRenderer = Renderer.getFontRenderer()
 
-        GlStateManager./* disableRescaleNormal */func_179101_C()
+        DGlStateManager.disableRescaleNormal()
         MCRenderHelper./* disableStandardItemLighting */func_74518_a()
-        Tessellator.disableLighting()
-        Tessellator.disableDepth()
+        DGlStateManager
+            .disableLighting()
+            .disableDepth()
 
         let tooltipWidth = 0
         for (let str of textLines) {
@@ -256,41 +260,47 @@ export class Render2D {
         ]
 
         // Pre gradient draw
-        Tessellator.disableTexture2D()
-        Tessellator.enableBlend()
-        Tessellator.disableAlpha()
-        Tessellator.tryBlendFuncSeparate(770, 771, 1, 0)
-        GlStateManager./* shadeModel */func_179103_j(7425)
+        MCRenderItem./* zLevel */field_77023_b = zlevel
+        DGlStateManager
+            .disableTexture2D()
+            .enableBlend()
+            .disableAlpha()
+            .tryBlendFuncSeparate(770, 771, 1, 0)
+            .shadeModel(7425)
 
         // draw
-        drawGradientRect(tooltipX - 3, tooltipY - 4, tooltipX + tooltipWidth + 3, tooltipY - 3, bgColor, bgColor, zlevel)
-        drawGradientRect(tooltipX - 3, tooltipY + tooltipHeight + 3, tooltipX + tooltipWidth + 3, tooltipY + tooltipHeight + 4, bgColor, bgColor, zlevel)
-        drawGradientRect(tooltipX - 3, tooltipY - 3, tooltipX + tooltipWidth + 3, tooltipY + tooltipHeight + 3, bgColor, bgColor, zlevel)
-        drawGradientRect(tooltipX - 4, tooltipY - 3, tooltipX - 3, tooltipY + tooltipHeight + 3, bgColor, bgColor, zlevel)
-        drawGradientRect(tooltipX + tooltipWidth + 3, tooltipY - 3, tooltipX + tooltipWidth + 4, tooltipY + tooltipHeight + 3, bgColor, bgColor,zlevel)
-        drawGradientRect(tooltipX - 3, tooltipY - 3 + 1, tooltipX - 3 + 1, tooltipY + tooltipHeight + 3 - 1, borderColor, borderColorEnd, zlevel)
-        drawGradientRect(tooltipX + tooltipWidth + 2, tooltipY - 3 + 1, tooltipX + tooltipWidth + 3, tooltipY + tooltipHeight + 3 - 1, borderColor, borderColorEnd, zlevel)
-        drawGradientRect(tooltipX - 3, tooltipY - 3, tooltipX + tooltipWidth + 3, tooltipY - 3 + 1, borderColor, borderColor, zlevel)
-        drawGradientRect(tooltipX - 3, tooltipY + tooltipHeight + 2, tooltipX + tooltipWidth + 3, tooltipY + tooltipHeight + 3, borderColorEnd, borderColorEnd, zlevel)
+        Render2D.drawGradientRect(tooltipX - 3, tooltipY - 4, tooltipX + tooltipWidth + 3, tooltipY - 3, bgColor, bgColor, zlevel)
+        Render2D.drawGradientRect(tooltipX - 3, tooltipY + tooltipHeight + 3, tooltipX + tooltipWidth + 3, tooltipY + tooltipHeight + 4, bgColor, bgColor, zlevel)
+        Render2D.drawGradientRect(tooltipX - 3, tooltipY - 3, tooltipX + tooltipWidth + 3, tooltipY + tooltipHeight + 3, bgColor, bgColor, zlevel)
+        Render2D.drawGradientRect(tooltipX - 4, tooltipY - 3, tooltipX - 3, tooltipY + tooltipHeight + 3, bgColor, bgColor, zlevel)
+        Render2D.drawGradientRect(tooltipX + tooltipWidth + 3, tooltipY - 3, tooltipX + tooltipWidth + 4, tooltipY + tooltipHeight + 3, bgColor, bgColor,zlevel)
+        Render2D.drawGradientRect(tooltipX - 3, tooltipY - 3 + 1, tooltipX - 3 + 1, tooltipY + tooltipHeight + 3 - 1, borderColor, borderColorEnd, zlevel)
+        Render2D.drawGradientRect(tooltipX + tooltipWidth + 2, tooltipY - 3 + 1, tooltipX + tooltipWidth + 3, tooltipY + tooltipHeight + 3 - 1, borderColor, borderColorEnd, zlevel)
+        Render2D.drawGradientRect(tooltipX - 3, tooltipY - 3, tooltipX + tooltipWidth + 3, tooltipY - 3 + 1, borderColor, borderColor, zlevel)
+        Render2D.drawGradientRect(tooltipX - 3, tooltipY + tooltipHeight + 2, tooltipX + tooltipWidth + 3, tooltipY + tooltipHeight + 3, borderColorEnd, borderColorEnd, zlevel)
 
         // Post gradient draw
-        GlStateManager./* shadeModel */func_179103_j(7424)
-        Tessellator.disableBlend()
-        Tessellator.enableAlpha()
-        Tessellator.enableTexture2D()
+        DGlStateManager
+            .shadeModel(7424)
+            .disableBlend()
+            .enableAlpha()
+            .enableTexture2D()
 
         // drawing text
         for (let i = 0; i < textLines.length; i++) {
             let line = textLines[i]
-            fontRenderer./* drawStringWithShadow */func_175063_a(line, tooltipX, tooltipY, -1)
+            fontRenderer./* drawStringWithShadow */func_175063_a(line.addColor(), tooltipX, tooltipY, -1)
             if (i + 1 === titleLinesCount) tooltipY += 2
             tooltipY += 10
         }
 
-        Tessellator.enableLighting()
-        Tessellator.enableDepth()
+        MCRenderItem./* zLevel */field_77023_b = zlevel
+
+        DGlStateManager
+            .enableLighting()
+            .enableDepth()
         MCRenderHelper./* enableStandardItemLighting */func_74519_b()
-        GlStateManager./* enableRescaleNormal */func_179091_B()
+        DGlStateManager.enableRescaleNormal()
     }
 
     /**
@@ -304,5 +314,16 @@ export class Render2D {
         currentTitle.subtitle = subtitle
         currentTitle.time = ms
         showTitleRegister.register()
+    }
+
+    /**
+     * - Colorizes the stack with the specified rgba
+     * @param {number} r Red (`0` - `255`)
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`) defaults to `255`
+     */
+    static colorize(r, g, b, a = 255) {
+        DGlStateManager.color(r / 255, g / 255, b / 255, a / 255)
     }
 }

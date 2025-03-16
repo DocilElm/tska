@@ -56,6 +56,12 @@ export class DGlStateManager {
         return this
     }
 
+    static shadeModel(mode) {
+        GlStateManager./* shadeModel */func_179103_j(mode)
+
+        return this
+    }
+
     static enableBlend() {
         GlStateManager./* enableBlend */func_179147_l()
 
@@ -92,6 +98,12 @@ export class DGlStateManager {
         return this
     }
 
+    static enableRescaleNormal() {
+        GlStateManager./* enableRescaleNormal */func_179091_B()
+
+        return this
+    }
+
     static disableTexture2D() {
         GlStateManager./* disableTexture2D */func_179090_x()
 
@@ -124,6 +136,12 @@ export class DGlStateManager {
 
     static disableCull() {
         GlStateManager./* disableCull */func_179129_p()
+
+        return this
+    }
+
+    static disableRescaleNormal() {
+        GlStateManager./* disableRescaleNormal */func_179101_C()
 
         return this
     }
