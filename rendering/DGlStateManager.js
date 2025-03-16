@@ -44,6 +44,12 @@ export class DGlStateManager {
         return this
     }
 
+    static rotate(angle, x, y, z) {
+        GlStateManager./* rotate */func_179114_b(angle, x, y, z)
+
+        return this
+    }
+
     static enableBlend() {
         GlStateManager./* enableBlend */func_179147_l()
 

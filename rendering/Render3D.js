@@ -489,4 +489,103 @@ export class Render3D {
             .popMatrix()
         GL11.glLineWidth(2)
     }
+
+    /**
+     * - Renders a string in the world, similar to CT's `Tessellator.drawString()`
+     * method but with more features for making it more dev friendly,
+     * - Allows the use of `\n` (newline) for multiple strings to draw as well as depth check and shadows
+     * @link Taken and modified from nwjn's [Chattriggers code-snippet](https://discord.com/channels/119493402902528000/1109135083228643460/1291612204361060434)
+     * @param {string|string[]} text The text(s) to render in the world
+     * @param {number} x The X axis
+     * @param {number} y The Y axis
+     * @param {number} z The Z axis
+     * @param {number[]} bgColor The background color (only works if `renderBackground` is enabled)
+     * @param {boolean} renderBackground Whether to draw a background in the text that is being rendered
+     * @param {number} scale The scale (`1` by default)
+     * @param {boolean} increase Whether to increase the box's size the close the player is to it (`true` by default)
+     * @param {boolean} shadow Whether to add shadows to the text (`true` by default)
+     * @param {boolean} phase Whether to make the text see through walls (`false` by default)
+     * @returns 
+     */
+    static renderString(
+        text,
+        x,
+        y,
+        z,
+        bgColor = [0, 0, 0, 180],
+        renderBackground = true,
+        scale = 1,
+        increase = true,
+        shadow = true,
+        phase = false
+    ) {
+        if (text == null || x == null) return
+
+        let length = 1
+        let isArray = false
+        if (text.includes("\n")) {
+            text = text.split("\n")
+            length = text.length
+            isArray = true
+        }
+
+        const [ realX, realY, realZ ] = Render3D.lerpViewEntity()
+        let totalWidth = 0
+        const textLines = isArray
+            ? text.map(it => (totalWidth += Renderer.getStringWidth(it.removeFormatting())) && it.addColor())
+            : (totalWidth += Renderer.getStringWidth(text.removeFormatting())) && text.addColor()
+        const mult = Client.getMinecraft()./* gameSettings */field_71474_y./* thirdPersonView */field_74320_O == 2 ? -1 : 1
+        let distanceScale = scale
+        if (increase) distanceScale = scale * 0.45 * (Math.hypot(x, y, z) / 120)
+
+        const fr = Renderer.getFontRenderer()
+        const renderManager = Renderer.getRenderManager()
+        const playerViewY = renderManager./* playerViewY */field_78735_i
+        const playerViewX = renderManager./* playerViewX */field_78732_j
+
+        DGlStateManager
+            .pushMatrix()
+            .translate(realX, realY, realZ)
+            .rotate(-playerViewY, 0, 1, 0)
+            .rotate(playerViewX * mult, 1, 0, 0)
+            .scale(-distanceScale, -distanceScale, distanceScale)
+            .disableLighting()
+            .enableBlend()
+            .tryBlendFuncSeparate(770, 771, 1, 0)
+
+        if (phase) DGlStateManager.disableDepth()
+
+        if (renderBackground) {
+            const [ r, g, b, a ] = [
+                bgColor[0] / 255,
+                bgColor[1] / 255,
+                bgColor[2] / 255,
+                bgColor[3] / 255
+            ]
+            const ww = totalWidth / 2
+
+            DGlStateManager.disableTexture2D()
+            WorldRenderer./* begin */func_181668_a(7, DefaultVertexFormats./* POSITION_COLOR */field_181706_f)
+            WorldRenderer./* pos */func_181662_b(-ww - 1, -1 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
+            WorldRenderer./* pos */func_181662_b(-ww - 1, 10 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
+            WorldRenderer./* pos */func_181662_b(ww + 1, 10 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
+            WorldRenderer./* pos */func_181662_b(ww + 1, -1 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
+            MCTessellator./* draw */func_78381_a()
+            DGlStateManager.enableTexture2D()
+        }
+
+        if (!isArray)
+            fr./* drawString */func_175065_a(textLines, -Renderer.getStringWidth(textLines) / 2, 0, 0xffffff, shadow)
+        else {
+            for (let idx = 0; idx < textLines.length; idx++) {
+                let it = textLines[idx]
+                fr./* drawString */func_175065_a(it, -Renderer.getStringWidth(it) / 2, idx * 9, 0xffffff, shadow)
+            }
+        }
+
+        if (phase) DGlStateManager.enableDepth()
+        if (renderBackground) DGlStateManager.color(1, 1, 1, 1)
+
+        DGlStateManager.popMatrix()
+    }
 }
