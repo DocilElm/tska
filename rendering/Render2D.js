@@ -27,6 +27,22 @@ export class Render2D {
     }
 
     /**
+     * - Gets the MCTessellator instance
+     * @returns {MCTessellator} MCTessellator
+     */
+    static getMCTessellator() {
+        return MCTessellator
+    }
+
+    /**
+     * - Gets the MCWorldRenderer instance
+     * @returns {MCWorldRenderer} MCWorldRenderer
+     */
+    static getMCWorldRenderer() {
+        return WorldRenderer
+    }
+
+    /**
      * - Sets up the stack for a rect draw
      */
     static preDrawRect() {
@@ -92,6 +108,7 @@ export class Render2D {
 
     /**
      * - Renders a gradient rect at the specified location with the given colors
+     * - Some of the code was taken from forge's implementation however it was improved
      * @param {number} left
      * @param {number} top
      * @param {number} right
