@@ -39,13 +39,19 @@ export class DGlStateManager {
         return this
     }
 
-    static scale(x, y) {
-        GlStateManager./* scale */func_179152_a(x, y || x, 1)
+    static scale(x, y = x, z = x) {
+        GlStateManager./* scale */func_179152_a(x, y, z)
         return this
     }
 
     static rotate(angle, x, y, z) {
         GlStateManager./* rotate */func_179114_b(angle, x, y, z)
+
+        return this
+    }
+
+    static blendFunc(srcFactor, dstFactor) {
+        GlStateManager./* blendFunc */func_179112_b(srcFactor, dstFactor)
 
         return this
     }

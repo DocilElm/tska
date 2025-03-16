@@ -529,14 +529,14 @@ export class Render3D {
             isArray = true
         }
 
-        const [ realX, realY, realZ ] = Render3D.lerpViewEntity()
         let totalWidth = 0
+        const pos = Tessellator.getRenderPos(x, y, z)
         const textLines = isArray
             ? text.map(it => (totalWidth += Renderer.getStringWidth(it.removeFormatting())) && it.addColor())
             : (totalWidth += Renderer.getStringWidth(text.removeFormatting())) && text.addColor()
         const mult = Client.getMinecraft()./* gameSettings */field_71474_y./* thirdPersonView */field_74320_O == 2 ? -1 : 1
         let distanceScale = scale
-        if (increase) distanceScale = scale * 0.45 * (Math.hypot(x, y, z) / 120)
+        if (increase) distanceScale = scale * 0.45 * (Math.hypot(pos.x, pos.y, pos.z) / 120)
 
         const fr = Renderer.getFontRenderer()
         const renderManager = Renderer.getRenderManager()
@@ -545,13 +545,13 @@ export class Render3D {
 
         DGlStateManager
             .pushMatrix()
-            .translate(realX, realY, realZ)
+            .translate(pos.x, pos.y, pos.z)
             .rotate(-playerViewY, 0, 1, 0)
             .rotate(playerViewX * mult, 1, 0, 0)
             .scale(-distanceScale, -distanceScale, distanceScale)
             .disableLighting()
             .enableBlend()
-            .tryBlendFuncSeparate(770, 771, 1, 0)
+            .blendFunc(770, 771)
 
         if (phase) DGlStateManager.disableDepth()
 
@@ -564,28 +564,30 @@ export class Render3D {
             ]
             const ww = totalWidth / 2
 
-            DGlStateManager.disableTexture2D()
-            WorldRenderer./* begin */func_181668_a(7, DefaultVertexFormats./* POSITION_COLOR */field_181706_f)
+            WorldRenderer./* begin */func_181668_a(6, DefaultVertexFormats./* POSITION_COLOR */field_181706_f)
             WorldRenderer./* pos */func_181662_b(-ww - 1, -1 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
             WorldRenderer./* pos */func_181662_b(-ww - 1, 10 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
             WorldRenderer./* pos */func_181662_b(ww + 1, 10 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
             WorldRenderer./* pos */func_181662_b(ww + 1, -1 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
             MCTessellator./* draw */func_78381_a()
-            DGlStateManager.enableTexture2D()
         }
 
+        DGlStateManager.enableTexture2D()
+
         if (!isArray)
-            fr./* drawString */func_175065_a(textLines, -Renderer.getStringWidth(textLines) / 2, 0, 0xffffff, shadow)
+            fr./* drawString */func_175065_a(textLines, -totalWidth / 2, 0, 0xffffff, shadow)
         else {
             for (let idx = 0; idx < textLines.length; idx++) {
                 let it = textLines[idx]
-                fr./* drawString */func_175065_a(it, -Renderer.getStringWidth(it) / 2, idx * 9, 0xffffff, shadow)
+                fr./* drawString */func_175065_a(it, -Renderer.getStringWidth(it.removeFormatting()) / 2, idx * 9, 0xffffff, shadow)
             }
         }
 
         if (phase) DGlStateManager.enableDepth()
         if (renderBackground) DGlStateManager.color(1, 1, 1, 1)
 
-        DGlStateManager.popMatrix()
+        DGlStateManager
+            .enableLighting()
+            .popMatrix()
     }
 }
