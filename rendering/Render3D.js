@@ -454,7 +454,7 @@ export class Render3D {
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      */
     static renderLines(points, r, g, b, a, phase = true, lineWidth = 3, translate = true) {
-        const [ realX, realY, realZ ] = this.getInterp()
+        const [ realX, realY, realZ ] = Render3D.lerpViewEntity()
 
         GL11.glLineWidth(lineWidth)
         DGlStateManager
