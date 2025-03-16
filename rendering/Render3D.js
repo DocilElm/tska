@@ -504,7 +504,7 @@ export class Render3D {
      * @param {number} scale The scale (`1` by default)
      * @param {boolean} increase Whether to increase the box's size the close the player is to it (`true` by default)
      * @param {boolean} shadow Whether to add shadows to the text (`true` by default)
-     * @param {boolean} phase Whether to make the text see through walls (`false` by default)
+     * @param {boolean} phase Whether to make the text see through walls (`true` by default)
      * @returns 
      */
     static renderString(
@@ -517,7 +517,7 @@ export class Render3D {
         scale = 1,
         increase = true,
         shadow = true,
-        phase = false
+        phase = true
     ) {
         if (text == null || x == null) return
 
@@ -552,6 +552,7 @@ export class Render3D {
             .disableLighting()
             .enableBlend()
             .blendFunc(770, 771)
+        Tessellator.depthMask(false)
 
         if (phase) DGlStateManager.disableDepth()
 
@@ -564,15 +565,15 @@ export class Render3D {
             ]
             const ww = totalWidth / 2
 
-            WorldRenderer./* begin */func_181668_a(6, DefaultVertexFormats./* POSITION_COLOR */field_181706_f)
+            DGlStateManager.disableTexture2D()
+            WorldRenderer./* begin */func_181668_a(7, DefaultVertexFormats./* POSITION_COLOR */field_181706_f)
             WorldRenderer./* pos */func_181662_b(-ww - 1, -1 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
             WorldRenderer./* pos */func_181662_b(-ww - 1, 10 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
             WorldRenderer./* pos */func_181662_b(ww + 1, 10 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
             WorldRenderer./* pos */func_181662_b(ww + 1, -1 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
             MCTessellator./* draw */func_78381_a()
+            DGlStateManager.enableTexture2D()
         }
-
-        DGlStateManager.enableTexture2D()
 
         if (!isArray)
             fr./* drawString */func_175065_a(textLines, -totalWidth / 2, 0, 0xffffff, shadow)
@@ -586,8 +587,9 @@ export class Render3D {
         if (phase) DGlStateManager.enableDepth()
         if (renderBackground) DGlStateManager.color(1, 1, 1, 1)
 
+        Tessellator.depthMask(true)
         DGlStateManager
-            .enableLighting()
+            .disableBlend()
             .popMatrix()
     }
 }
