@@ -7,6 +7,7 @@ const mcRenderItemField = Java.type("net.minecraft.client.Minecraft").class.getD
 mcRenderItemField.setAccessible(true)
 const MCRenderItem = mcRenderItemField.get(Client.getMinecraft())
 const MCRenderHelper = Java.type("net.minecraft.client.renderer.RenderHelper")
+const OpenGlHelper = Java.type("net.minecraft.client.renderer.OpenGlHelper")
 
 const currentTitle = {
     title: null,
@@ -325,5 +326,61 @@ export class Render2D {
      */
     static colorize(r, g, b, a = 255) {
         DGlStateManager.color(r / 255, g / 255, b / 255, a / 255)
+    }
+
+    /**
+     * - Draws an entity on the screen that is similar to what most inventory huds use
+     * @param {MCEntity} entityIn The MCEntity
+     * @param {number} x The X axis
+     * @param {number} y The Y axis
+     * @param {number} mx The MouseX
+     * @param {number} my The MouseY
+     * @param {number} scale The scaling factor
+     */
+    static drawEntityOnScreen(entityIn, x, y, mx, my, scale) {
+        entityIn./* onUpdate */func_70071_h_()
+    
+        GlStateManager./* enableColorMaterial */func_179142_g()
+        DGlStateManager
+            .pushMatrix()
+            .translate(x, y, 50)
+            .scale(-scale, scale, scale)
+            .rotate(180, 0, 0, 1)
+        
+        const renderYawOffset = entityIn./* renderYawOffset */field_70761_aq
+        const entityYaw = entityIn./* rotationYaw */field_70177_z
+        const entityRotation = entityIn./* rotationPitch */field_70125_A
+        const entityPrevRotationYawHead = entityIn./* prevRotationYawHead */field_70758_at
+        const entityRotationYawHead = entityIn./* rotationYawHead */field_70759_as
+    
+        DGlStateManager.rotate(135, 0, 1, 0)
+        MCRenderHelper./* enableStandardItemLighting */func_74519_b()
+        DGlStateManager
+            .rotate(-135, 0, 1, 0)
+            .rotate(25, 1, 0, 0)
+    
+        entityIn./* renderYawOffset */field_70761_aq = Math.atan(mx / 40) * 20
+        entityIn./* rotationYaw */field_70177_z = Math.atan(mx / 40) * 40
+        entityIn./* rotationPitch */field_70125_A = Math.atan(my / 40) * 20
+        entityIn./* rotationYawHead */field_70759_as = entityIn./* rotationYaw */field_70177_z
+        entityIn./* prevRotationYawHead */field_70758_at = entityIn./* rotationYaw */field_70177_z
+    
+        const rnManager = Client.getMinecraft()./* getRenderManager */func_175598_ae()
+        rnManager./* setPlayerViewY */func_178631_a(180)
+        rnManager./* setRenderShadow */func_178633_a(false)
+        rnManager./* renderEntityWithPosYaw */func_147940_a(entityIn, 0, 0, 0, 0, 1)
+    
+        entityIn./* renderYawOffset */field_70761_aq = renderYawOffset
+        entityIn./* rotationYaw */field_70177_z = entityYaw
+        entityIn./* rotationPitch */field_70125_A = entityRotation
+        entityIn./* rotationYawHead */field_70759_as = entityRotationYawHead
+        entityIn./* prevRotationYawHead */field_70758_at = entityPrevRotationYawHead
+    
+        DGlStateManager.popMatrix()
+        MCRenderHelper./* disableStandardItemLighting */func_74518_a()
+        GlStateManager./* disableRescaleNormal */func_179101_C()
+        GlStateManager./* setActiveTexture */func_179138_g(OpenGlHelper./* lightmapTexUnit */field_77476_b)
+        DGlStateManager.disableTexture2D()
+        GlStateManager./* setActiveTexture */func_179138_g(OpenGlHelper./* defaultTexUnit */field_77478_a)
     }
 }
