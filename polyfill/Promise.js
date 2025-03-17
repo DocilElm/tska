@@ -17,7 +17,7 @@ export class Promise {
 
         this.state = 1
         this.value = args
-        this.handlers.forEach((it) => it.onFulfilled(...args))
+        this.handlers.forEach((it) => it.onFulfilled(args))
     }
 
     _reject(...args) {
@@ -25,7 +25,7 @@ export class Promise {
 
         this.state = 2
         this.reason = args
-        this.handlers.forEach((it) => it.onRejected(...args))
+        this.handlers.forEach((it) => it.onRejected(args))
     }
 
     then(onFulfilled, onRejected) {
@@ -33,16 +33,20 @@ export class Promise {
             const handler = {
                 onFulfilled(value) {
                     try {
-                        onFulfilled(...value)
-                        resolve(...value)
+                        const result = onFulfilled?.call(null, ...value)
+                        if (result instanceof Promise) return result.then(resolve, reject)
+
+                        resolve(result)
                     } catch (err) {
                         reject(err)
                     }
                 },
                 onRejected(reason) {
                     try {
-                        onRejected(...reason)
-                        resolve(...reason)
+                        const result = onRejected?.call(null, ...reason)
+                        if (result instanceof Promise) return result.then(resolve, reject)
+
+                        reject(result)
                     } catch (err) {
                         reject(err)
                     }
