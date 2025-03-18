@@ -49,7 +49,7 @@ export class Promise {
                         const result = onFulfilled?.call(null, ...value)
                         if (result instanceof Promise) return result.then(resolve, reject)
 
-                        resolve(result)
+                        resolve.call(null, ...value)
                     } catch (err) {
                         reject(err)
                     }
@@ -59,7 +59,7 @@ export class Promise {
                         const result = onRejected?.call(null, ...reason)
                         if (result instanceof Promise) return result.then(resolve, reject)
 
-                        reject(result)
+                        reject.call(null, ...reason)
                     } catch (err) {
                         reject(err)
                     }
