@@ -4,6 +4,7 @@ const OutputStreamWriter = Java.type("java.io.OutputStreamWriter")
 const GZIPInputStream = Java.type("java.util.zip.GZIPInputStream")
 const BufferedReader = Java.type("java.io.BufferedReader")
 const InputStreamReader = Java.type("java.io.InputStreamReader")
+const URLEncoder = Java.type("java.net.URLEncoder")
 
 /**
  * - Opens a java HttpsURLConnection with the SSL factory that handles https
@@ -12,19 +13,47 @@ const InputStreamReader = Java.type("java.io.InputStreamReader")
  */
 export const getConnection = (url) => com.chattriggers.ctjs.CTJS.INSTANCE.makeWebRequest(url)
 
+const makeQueryString = (obj) => {
+    const keys = Object.keys(obj)
+    let str = ""
+
+    for (let k of keys) {
+        let v = obj[k]
+        if (str.length > 0) str += "&"
+
+        str += `${URLEncoder.encode(k, "UTF-8")}=${URLEncoder.encode(v, "UTF-8")}`
+    }
+
+    return str
+}
+
 const handlePost = (connection, opts) => {
-    connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
     let streamWriter = null
+    let dataToWrite = null
+
+    if ("body" in opts) {
+        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+        dataToWrite = JSON.stringify(opts.body)
+    }
+    if ("form" in opts) {
+        const qs = makeQueryString(opts.form)
+        const bytes = new (java.lang.String)(qs).getBytes("UTF-8")
+
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+        connection.setRequestProperty("Content-Length", bytes.length.toString())
+
+        dataToWrite = bytes
+    }
 
     try {
         streamWriter = new OutputStreamWriter(connection.getOutputStream())
-        streamWriter.write(JSON.stringify(opts.body))
+        streamWriter.write(dataToWrite)
     } catch (error) {
         print(error)
     } finally {
         streamWriter?.close()
     }
-    // TODO: handle multi part and form not only body
+    // TODO: handle multi part not only body
 }
 
 /**
@@ -37,6 +66,7 @@ const handlePost = (connection, opts) => {
  * @prop {boolean} json Whether to automatically call `JSON.parse()` in the contents or not (`false` by default)
  * @prop {boolean} fullResponse Whether the content result should have the "full" response
  * @prop {any} body The body contents to send to the request
+ * @prop {any} form The form contents to send to the request
  * i.e. `{ status: status, message: responseMessage, headers: header, body: content }` (`false` by default)
  */
 
