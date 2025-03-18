@@ -29,7 +29,7 @@ const handlePost = (connection, opts) => {
 
 /**
  * @typedef {object} opts
- * @prop {string} method The method of the request (`GET` by default)
+ * @prop {"GET"|"POST"|"PUT"|"OPTIONS"|"DELETE"} method The method of the request (`GET` by default)
  * @prop {number} timeout The timeout time in milliseconds (`0` by default)
  * @prop {number} readTimeout The read timeout time in milliseconds (`0` by default)
  * @prop {boolean} followRedirect Whether to follow the request's redirect or not (`true` by default)
@@ -69,7 +69,7 @@ export const request = (opts, resolve, reject) => {
             connection.setInstanceFollowRedirects(opts.followRedirect)
             connection.setRequestProperty("Accept-Encoding", "gzip")
     
-            const headers = Object.keys(opts.headers)
+            let headers = Object.keys(opts.headers)
             for (let k of headers) {
                 connection.setRequestProperty(k, opts.headers[k])
             }
@@ -77,6 +77,16 @@ export const request = (opts, resolve, reject) => {
             if (opts.method === "POST") handlePost(connection, opts)
 
             const status = connection.getResponseCode()
+            if (opts.method === "OPTIONS") {
+                const headerField = connection.getHeaderFields()
+                const entrySet = headerField.entrySet()
+
+                headers = {}
+                for (let entry of entrySet) {
+                    headers[entry.getKey()] = entry.getValue()
+                }
+            }
+
             let stream = status > 299 ? connection.getErrorStream() : connection.getInputStream()
 
             if (connection.getContentEncoding() === "gzip")
