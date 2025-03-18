@@ -5,6 +5,10 @@ const GZIPInputStream = Java.type("java.util.zip.GZIPInputStream")
 const BufferedReader = Java.type("java.io.BufferedReader")
 const InputStreamReader = Java.type("java.io.InputStreamReader")
 const URLEncoder = Java.type("java.net.URLEncoder")
+const ByteArrayOutputStream = Java.type("java.io.ByteArrayOutputStream")
+const DataOutputStream = Java.type("java.io.DataOutputStream")
+const URLConnection = Java.type("java.net.URLConnection")
+const Files = Java.type("java.nio.file.Files")
 
 /**
  * - Opens a java HttpsURLConnection with the SSL factory that handles https
@@ -27,6 +31,40 @@ const makeQueryString = (obj) => {
     return str
 }
 
+const makeMultiPartBody = (obj, boundary) => {
+    const byteStream = new ByteArrayOutputStream()
+    const outputStream = new DataOutputStream(byteStream)
+    const keys = Object.keys(obj)
+
+    for (let k of keys) {
+        let v = obj[k]
+
+        outputStream.writeBytes(`--${boundary}\r\n`)
+
+        if (!("file" in v)) {
+            outputStream.writeBytes(`Content-Disposition: form-data; name="${k}"\r\n\r\n`)
+            outputStream.writeBytes(`${v}\r\n`)
+            continue
+        }
+
+        /** @type {JavaTFile} */
+        let file = new (java.io.File)(v.file)
+        let fileName = file.getName()
+        let byteArray = Files.readAllBytes(file.toPath())
+        let mimeType = URLConnection.guessContentTypeFromName(v.file)
+
+        outputStream.writeBytes(`Content-Disposition: form-data; name="${k}"; filename="${fileName}"\r\n`)
+        outputStream.writeBytes(`Content-Type: ${mimeType}\r\n\r\n`)
+        outputStream.write(byteArray)
+        outputStream.writeBytes(`\r\n`)
+    }
+
+    outputStream.writeBytes(`--${boundary}--\r\n`)
+    outputStream.close()
+
+    return byteStream.toByteArray()
+}
+
 const handlePost = (connection, opts) => {
     let streamWriter = null
     let dataToWrite = null
@@ -35,6 +73,7 @@ const handlePost = (connection, opts) => {
         connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
         dataToWrite = JSON.stringify(opts.body)
     }
+
     if ("form" in opts) {
         const qs = makeQueryString(opts.form)
         const bytes = new (java.lang.String)(qs).getBytes("UTF-8")
@@ -45,6 +84,16 @@ const handlePost = (connection, opts) => {
         dataToWrite = bytes
     }
 
+    if ("multipart" in opts) {
+        const boundary = java.util.UUID.randomUUID().toString()
+        const body = makeMultiPartBody(opts.multipart, boundary)
+
+        connection.setRequestProperty("Content-Type", `multipart/form-data; boundary=${boundary}`)
+        connection.setRequestProperty("Content-Length", body.length)
+
+        dataToWrite = body
+    }
+
     try {
         streamWriter = new OutputStreamWriter(connection.getOutputStream())
         streamWriter.write(dataToWrite)
@@ -53,7 +102,6 @@ const handlePost = (connection, opts) => {
     } finally {
         streamWriter?.close()
     }
-    // TODO: handle multi part not only body
 }
 
 /**
@@ -67,6 +115,7 @@ const handlePost = (connection, opts) => {
  * @prop {boolean} fullResponse Whether the content result should have the "full" response
  * @prop {any} body The body contents to send to the request
  * @prop {any} form The form contents to send to the request
+ * @prop {any} multipart The multipart contents to send to the request
  * i.e. `{ status: status, message: responseMessage, headers: header, body: content }` (`false` by default)
  */
 
