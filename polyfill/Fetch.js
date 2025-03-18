@@ -36,6 +36,7 @@ const handlePost = (connection, opts) => {
  * @prop {object} headers The headers object this request will use
  * @prop {boolean} json Whether to automatically call `JSON.parse()` in the contents or not (`false` by default)
  * @prop {boolean} fullResponse Whether the content result should have the "full" response
+ * @prop {any} body The body contents to send to the request
  * i.e. `{ status: status, message: responseMessage, headers: header, body: content }` (`false` by default)
  */
 
@@ -74,7 +75,7 @@ export const request = (opts, resolve, reject) => {
                 connection.setRequestProperty(k, opts.headers[k])
             }
 
-            if (opts.method === "POST") handlePost(connection, opts)
+            if (opts.method === "POST" || opts.method === "PUT") handlePost(connection, opts)
 
             const status = connection.getResponseCode()
             if (opts.method === "OPTIONS") {
@@ -105,7 +106,7 @@ export const request = (opts, resolve, reject) => {
             bfreader.close()
             connection.disconnect()
 
-            if (status > 299) return reject(content)
+            if (status > 299) return reject(`status code was over 299 (${status}) content: \"${content}\"`)
             if (opts.fullResponse) content = {
                 status: status,
                 message: connection.getResponseMessage(),
