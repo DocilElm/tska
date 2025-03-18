@@ -1,4 +1,8 @@
+/** @template T */
 export class Promise {
+    /**
+     * @param {(resolve: (value: ...T), reject: (reason: ...any)) => void} cb The callback function that will be ran
+     */
     constructor(cb) {
         this.state = 0
         this.value = null
@@ -12,6 +16,7 @@ export class Promise {
         }
     }
 
+    /** @private */
     _resolve(...args) {
         if (this.state) return
 
@@ -20,6 +25,7 @@ export class Promise {
         this.handlers.forEach((it) => it.onFulfilled(args))
     }
 
+    /** @private */
     _reject(...args) {
         if (this.state) return
 
@@ -28,6 +34,13 @@ export class Promise {
         this.handlers.forEach((it) => it.onRejected(args))
     }
 
+    /**
+     * - Adds a handler with the specified callback functions to be triggered whenever this promise is `resolved`/`rejected`
+     * @template U
+     * @param {(value: ...T) => U | Promise<U>} onFulfilled Triggers this callback whenever the promise is `resolved`
+     * @param {(reason: ...any) => U | Promise<U>} onRejected Triggers this callback whenever the promise is `rejected`
+     * @returns {Promise<U>} Promise
+     */
     then(onFulfilled, onRejected) {
         return new Promise((resolve, reject) => {
             const handler = {
@@ -67,18 +80,42 @@ export class Promise {
         })
     }
 
+    /**
+     * - Adds a handler with the specified callback functions to be triggered whenever this promise is `rejected`
+     * @template U
+     * @param {(reason: ...any) => U | Promise<U>} onRejected Triggers this callback whenever the promise is `rejected`
+     * @returns {Promise<U>} Promise
+     */
     catch(onRejected) {
         return this.then(null, onRejected)
     }
 
+    /**
+     * - Resolves a promise with the given value(s)
+     * @template T
+     * @param  {...T} args The value(s) to resolve the promise with
+     * @returns {Promise<T>} Promise
+     */
     static resolve(...args) {
         return new Promise((resolve) => resolve(...args))
     }
 
+    /**
+     * - Rejects a promise with the given reason(s)
+     * @param  {...any} args The reason(s) to reject the promise with
+     * @returns {Promise<never>} Promise
+     */
     static reject(...args) {
         return new Promise((_, reject) => reject(...args))
     }
 
+    /**
+     * - Makes a `Promise` that resolves only whenever all the given `Promises` are `fullfilled` (`resolved`),
+     * or rejects if any `Promise` `rejected`
+     * @template T
+     * @param {Promise<T>[]} promises The promises list
+     * @returns {Promise<T[]>} Promise
+     */
     static all(promises) {
         return new Promise((resolve, reject) => {
             let result = []
@@ -99,6 +136,12 @@ export class Promise {
         })
     }
 
+    /**
+     * - Makes a `Promise` that `resolves` or `rejects` as soon as one of the promises does as well
+     * @template T
+     * @param {Promise<T>[]} promises The promises list
+     * @returns {Promise<T>} Promise
+     */
     static race(promises) {
         return new Promise((resolve, reject) => {
             for (let promise of promises) {

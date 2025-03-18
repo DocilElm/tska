@@ -98,6 +98,7 @@ export default new class EventListener {
         return true
     }
 
+    /** @private */
     _clearListeners() {
         this.eventListeners.clear()
     }

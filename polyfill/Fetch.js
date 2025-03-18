@@ -42,9 +42,10 @@ const handlePost = (connection, opts) => {
 /**
  * - Makes a request with the given params
  * - Note: This does not set up a `Promise` and neither does it return one.
+ * @template T
  * @param {opts} opts The options to use for this request
- * @param {*} resolve
- * @param {*} reject
+ * @param {(value: ...T)} resolve
+ * @param {(reason: ...any)} reject
  * @returns
  */
 export const request = (opts, resolve, reject) => {
@@ -112,9 +113,10 @@ export const request = (opts, resolve, reject) => {
 /**
  * - Fetch-like api to making requests
  * - Note: This returns a promise unlike node-fetch so no helper methods can be used in the `response`
+ * @template T
  * @param {string} url The url to make the request to
  * @param {opts} opts The options to use for this request
- * @returns {Promise}
+ * @returns {import("./Promise").Promise<T>}
  */
 export const fetch = (url, opts = {}) => {
     opts.url = url
