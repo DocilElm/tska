@@ -6,12 +6,14 @@ export class AxisAlignedBBUtils {
      * - Creates a new MCAxisAlignedBB from the given boundaries
      * @param {number} minx
      * @param {number} miny
+     * @param {number} minz
      * @param {number} maxx
      * @param {number} maxy
+     * @param {number} maxz
      * @returns {*} MCAxisAlignedBB
      */
-    static fromBounds(minx, miny, maxx, maxy) {
-        return new AxisAlignedBB(minx, miny, maxx, maxy)
+    static fromBounds(minx, miny, minz, maxx, maxy, maxz) {
+        return new AxisAlignedBB(minx, miny, minz, maxx, maxy, maxz)
     }
 
     /**
