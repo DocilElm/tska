@@ -5,7 +5,7 @@
 export default new class EventListener {
     constructor() {
         /** @private */
-        this.eventListeners = new HashMap()
+        this.eventListeners = new Map()
 
         register("gameUnload", () => {
             this._clearListeners()
@@ -19,10 +19,10 @@ export default new class EventListener {
      * @returns {this} this for method chaining
      */
     createEvent(name) {
-        if (!name || !(name instanceof String)) throw `[TSKA] "${name}" is not a valid event name or string.`
+        if (!name || typeof name !== "string") throw `[TSKA] "${name}" is not a valid event name or string.`
         if (this.eventListeners.has(name)) throw `[TSKA] event with name "${name}" already exists.`
 
-        this.eventListeners.put(name, [])
+        this.eventListeners.set(name, [])
 
         return this
     }
@@ -51,7 +51,7 @@ export default new class EventListener {
      */
     on(eventName, listener) {
         if (!this.eventListeners.has(eventName)) throw `[TSKA] event with name "${eventName}" does not exist.`
-        if (!(listener instanceof Function)) throw `[TSKA] listener "${listener}" is not a valid function.`
+        if (typeof listener !== "function") throw `[TSKA] listener "${listener}" is not a valid function.`
 
         this.eventListeners.get(eventName).push(listener)
 
@@ -66,13 +66,13 @@ export default new class EventListener {
      */
     once(eventName, listener) {
         if (!this.eventListeners.has(eventName)) throw `[TSKA] event with name "${eventName}" does not exist.`
-        if (!(listener instanceof Function)) throw `[TSKA] listener "${listener}" is not a valid function.`
+        if (typeof listener !== "function") throw `[TSKA] listener "${listener}" is not a valid function.`
 
         const eventList = this.eventListeners.get(eventName)
         const idx = eventList.length - 1
         eventList.push((...args) => {
             listener(...args)
-            eventList.splice(idx, 1)
+            eventList.splice(idx < 0 ? 0 : idx, 1)
         })
 
         return this
@@ -86,7 +86,7 @@ export default new class EventListener {
      */
     remove(eventName, listener) {
         if (!this.eventListeners.has(eventName)) throw `[TSKA] event with name "${eventName}" does not exist.`
-        if (!(listener instanceof Function)) throw `[TSKA] listener "${listener}" is not a valid function.`
+        if (typeof listener !== "function") throw `[TSKA] listener "${listener}" is not a valid function.`
 
         const eventList = this.eventListeners.get(eventName)
         const idx = eventList.find((it) => it === listener)
