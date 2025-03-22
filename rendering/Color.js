@@ -2,7 +2,7 @@ export class Color {
     /** @param {[number, number, number, number]} rgbaArray */
     constructor(rgbaArray) {
         // Need to reverse because u32 converts it from ABGR
-        this.u8View = new Uint8ClampedArray(rgbaArray.slice().reverse())
+        this.u8View = new Uint8Array(rgbaArray.slice().reverse())
         this.u32View = new Uint32Array(this.u8View.buffer)
 
         this._recompute()
@@ -40,6 +40,6 @@ export class Color {
     _recompute() {
         this.f32View = Array.from(this.u8View.values(), c => c / 0xff)
 
-        this.argbHex = new Uint8ClampedArray(new Uint32Array([this.u8View[3], this.u8View[0], this.u8View[1], this.u8View[2]]).buffer)[0]
+        this.argbHex = new Uint8Array(new Uint32Array([this.u8View[3], this.u8View[0], this.u8View[1], this.u8View[2]]).buffer)[0]
     }
 }
