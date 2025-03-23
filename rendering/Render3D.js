@@ -506,6 +506,7 @@ export class Render3D {
      * @param {number} scale The scale (`1` by default)
      * @param {boolean} increase Whether to increase the box's size the close the player is to it (`true` by default)
      * @param {boolean} shadow Whether to add shadows to the text (`true` by default)
+     * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      * @param {boolean} phase Whether to make the text see through walls (`true` by default)
      * @returns 
      */
@@ -519,9 +520,12 @@ export class Render3D {
         scale = 1,
         increase = true,
         shadow = true,
+        pticks = null,
         phase = true
     ) {
         if (text == null || x == null) return
+        // Backwards compatibility should deprecate soon
+        if (typeof pticks === "boolean") phase = pticks
 
         let length = 1
         let isArray = false
@@ -532,13 +536,14 @@ export class Render3D {
         }
 
         let totalWidth = 0
-        const pos = Tessellator.getRenderPos(x, y, z)
+        const renderPos = Render3D.lerpViewEntity(pticks)
+        const pos = [ x - renderPos[0], y - renderPos[1], z - renderPos[2] ]
         const textLines = isArray
             ? text.map(it => (totalWidth += Renderer.getStringWidth(it.removeFormatting())) && it.addColor())
             : (totalWidth += Renderer.getStringWidth(text.removeFormatting())) && text.addColor()
         const mult = Client.getMinecraft()./* gameSettings */field_71474_y./* thirdPersonView */field_74320_O == 2 ? -1 : 1
         let distanceScale = scale
-        if (increase) distanceScale = scale * 0.45 * (Math.hypot(pos.x, pos.y, pos.z) / 120)
+        if (increase) distanceScale = scale * 0.45 * (Math.hypot(pos[0], pos[1], pos[2]) / 120)
 
         const fr = Renderer.getFontRenderer()
         const renderManager = Renderer.getRenderManager()
@@ -547,7 +552,7 @@ export class Render3D {
 
         DGlStateManager
             .pushMatrix()
-            .translate(pos.x, pos.y, pos.z)
+            .translate(pos[0], pos[1], pos[2])
             .rotate(-playerViewY, 0, 1, 0)
             .rotate(playerViewX * mult, 1, 0, 0)
             .scale(-distanceScale, -distanceScale, distanceScale)

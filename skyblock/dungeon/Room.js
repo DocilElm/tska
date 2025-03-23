@@ -144,8 +144,8 @@ export class Room {
         for (let idx = 0; idx < this.rcomps.length; idx++) {
             let [ x, z ] = this.rcomps[idx]
 
-            for (let idx = 0; idx < offsets.length; idx++) {
-                let [ dx, dz ] = offsets[idx]
+            for (let jdx = 0; jdx < offsets.length; jdx++) {
+                let [ dx, dz ] = offsets[jdx]
                 let [ nx, nz ] = [ x + dx, z + dz ]
 
                 if (!isChunkLoaded(nx, this.height, nz)) continue
@@ -153,7 +153,7 @@ export class Room {
                 let block = World.getBlockAt(nx, this.height, nz)
                 if (block.type.getID() !== 159 || block.getMetadata() !== 11) continue
 
-                this.rotation = idx * 90
+                this.rotation = jdx * 90
                 this.corner = [ nx + 0.5, this.height, nz + 0.5 ]
                 return
             }
