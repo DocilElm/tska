@@ -225,8 +225,8 @@ export class Render3D {
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
-     * @param {boolean} phase Whether to render the box through walls or not (`false` by default)
      * @param {number} lineWidth The width of the line (`3` by default)
+     * @param {boolean} phase Whether to render the box through walls or not (`false` by default)
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      */
@@ -243,6 +243,9 @@ export class Render3D {
         )
 
         Render3D.renderOutlinedBox(axis, r, g, b, a, phase, lineWidth, translate, pticks)
+        // Re-enable lighting, this will only work if the dev calls this function inside
+        // a post/renderentity register otherwise they have to manually disable it to not fuck up the stack
+        DGlStateManager.enableLighting()
     }
 
     /**
@@ -273,6 +276,9 @@ export class Render3D {
         )
 
         Render3D.renderFilledBox(axis, r, g, b, a, phase, translate, pticks)
+        // Re-enable lighting, this will only work if the dev calls this function inside
+        // a post/renderentity register otherwise they have to manually disable it to not fuck up the stack
+        DGlStateManager.enableLighting()
     }
 
     /**
@@ -289,10 +295,10 @@ export class Render3D {
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      * @returns
      */
-    static outlineBlock(ctBlock, r, g, b, a, phase = false, lineWidth = 3, translate = true, customTicks) {
+    static outlineBlock(ctBlock, r, g, b, a, phase = false, lineWidth = 3, translate = true, pticks) {
         if (!ctBlock) return
 
-        Render3D.renderOutlinedBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, lineWidth, translate, customTicks)
+        Render3D.renderOutlinedBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, lineWidth, translate, pticks)
     }
 
     /**
@@ -304,13 +310,14 @@ export class Render3D {
      * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render the filled block through walls or not (`false` by default)
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
+     * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      * @link Huge thanks to [Ch1ck3nNeedsRNG](https://github.com/PerseusPotter)
      * @returns
      */
-    static filledBlock(ctBlock, r, g, b, a, phase = false, translate = true, customTicks) {
+    static filledBlock(ctBlock, r, g, b, a, phase = false, translate = true, pticks) {
         if (!ctBlock) return
 
-        Render3D.renderFilledBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, translate, customTicks)
+        Render3D.renderFilledBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, translate, pticks)
     }
 
     /**
