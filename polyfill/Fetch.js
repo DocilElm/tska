@@ -94,6 +94,9 @@ const handlePost = (connection, opts) => {
         dataToWrite = body
     }
 
+    // If no data to write is provided we fall back out
+    if (!dataToWrite) return
+
     try {
         streamWriter = new OutputStreamWriter(connection.getOutputStream())
         streamWriter.write(dataToWrite)
