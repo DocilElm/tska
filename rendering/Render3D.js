@@ -170,7 +170,6 @@ export class Render3D {
             .enableAlpha()
             .enableTexture2D()
             .color(1, 1, 1, 1)
-            .enableLighting()
             .popMatrix()
 
         GL11.glLineWidth(2)
@@ -212,7 +211,6 @@ export class Render3D {
             .enableTexture2D()
             .color(1, 1, 1, 1)
             .enableCull()
-            .enableLighting()
             .popMatrix()
     }
 
@@ -416,7 +414,6 @@ export class Render3D {
         if (phase) DGlStateManager.enableDepth()
 
         DGlStateManager
-            .enableLighting()
             .enableTexture2D()
             .popMatrix()
     }
@@ -485,7 +482,6 @@ export class Render3D {
         DGlStateManager
             .color(1, 1, 1, 1)
             .enableCull()
-            .enableLighting()
             .enableTexture2D()
             .enableBlend()
             .popMatrix()
