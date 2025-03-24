@@ -170,7 +170,6 @@ export class Render3D {
             .enableAlpha()
             .enableTexture2D()
             .color(1, 1, 1, 1)
-            .enableLighting()
             .popMatrix()
 
         GL11.glLineWidth(2)
@@ -212,7 +211,6 @@ export class Render3D {
             .enableTexture2D()
             .color(1, 1, 1, 1)
             .enableCull()
-            .enableLighting()
             .popMatrix()
     }
 
@@ -227,8 +225,8 @@ export class Render3D {
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
-     * @param {boolean} phase Whether to render the box through walls or not (`false` by default)
      * @param {number} lineWidth The width of the line (`3` by default)
+     * @param {boolean} phase Whether to render the box through walls or not (`false` by default)
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      */
@@ -245,6 +243,9 @@ export class Render3D {
         )
 
         Render3D.renderOutlinedBox(axis, r, g, b, a, phase, lineWidth, translate, pticks)
+        // Re-enable lighting, this will only work if the dev calls this function inside
+        // a post/renderentity register otherwise they have to manually disable it to not fuck up the stack
+        DGlStateManager.enableLighting()
     }
 
     /**
@@ -275,6 +276,9 @@ export class Render3D {
         )
 
         Render3D.renderFilledBox(axis, r, g, b, a, phase, translate, pticks)
+        // Re-enable lighting, this will only work if the dev calls this function inside
+        // a post/renderentity register otherwise they have to manually disable it to not fuck up the stack
+        DGlStateManager.enableLighting()
     }
 
     /**
@@ -291,10 +295,10 @@ export class Render3D {
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      * @returns
      */
-    static outlineBlock(ctBlock, r, g, b, a, phase = false, lineWidth = 3, translate = true, customTicks) {
+    static outlineBlock(ctBlock, r, g, b, a, phase = false, lineWidth = 3, translate = true, pticks) {
         if (!ctBlock) return
 
-        Render3D.renderOutlinedBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, lineWidth, translate, customTicks)
+        Render3D.renderOutlinedBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, lineWidth, translate, pticks)
     }
 
     /**
@@ -306,13 +310,14 @@ export class Render3D {
      * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render the filled block through walls or not (`false` by default)
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
+     * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      * @link Huge thanks to [Ch1ck3nNeedsRNG](https://github.com/PerseusPotter)
      * @returns
      */
-    static filledBlock(ctBlock, r, g, b, a, phase = false, translate = true, customTicks) {
+    static filledBlock(ctBlock, r, g, b, a, phase = false, translate = true, pticks) {
         if (!ctBlock) return
 
-        Render3D.renderFilledBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, translate, customTicks)
+        Render3D.renderFilledBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, translate, pticks)
     }
 
     /**
@@ -416,7 +421,6 @@ export class Render3D {
         if (phase) DGlStateManager.enableDepth()
 
         DGlStateManager
-            .enableLighting()
             .enableTexture2D()
             .popMatrix()
     }
@@ -485,7 +489,6 @@ export class Render3D {
         DGlStateManager
             .color(1, 1, 1, 1)
             .enableCull()
-            .enableLighting()
             .enableTexture2D()
             .enableBlend()
             .popMatrix()
@@ -506,6 +509,7 @@ export class Render3D {
      * @param {number} scale The scale (`1` by default)
      * @param {boolean} increase Whether to increase the box's size the close the player is to it (`true` by default)
      * @param {boolean} shadow Whether to add shadows to the text (`true` by default)
+     * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      * @param {boolean} phase Whether to make the text see through walls (`true` by default)
      * @returns 
      */
@@ -519,9 +523,12 @@ export class Render3D {
         scale = 1,
         increase = true,
         shadow = true,
+        pticks = null,
         phase = true
     ) {
         if (text == null || x == null) return
+        // Backwards compatibility should deprecate soon
+        if (typeof pticks === "boolean") phase = pticks
 
         let length = 1
         let isArray = false
@@ -532,13 +539,14 @@ export class Render3D {
         }
 
         let totalWidth = 0
-        const pos = Tessellator.getRenderPos(x, y, z)
+        const renderPos = Render3D.lerpViewEntity(pticks)
+        const pos = [ x - renderPos[0], y - renderPos[1], z - renderPos[2] ]
         const textLines = isArray
             ? text.map(it => (totalWidth += Renderer.getStringWidth(it.removeFormatting())) && it.addColor())
             : (totalWidth += Renderer.getStringWidth(text.removeFormatting())) && text.addColor()
         const mult = Client.getMinecraft()./* gameSettings */field_71474_y./* thirdPersonView */field_74320_O == 2 ? -1 : 1
         let distanceScale = scale
-        if (increase) distanceScale = scale * 0.45 * (Math.hypot(pos.x, pos.y, pos.z) / 120)
+        if (increase) distanceScale = scale * 0.45 * (Math.hypot(pos[0], pos[1], pos[2]) / 120)
 
         const fr = Renderer.getFontRenderer()
         const renderManager = Renderer.getRenderManager()
@@ -547,7 +555,7 @@ export class Render3D {
 
         DGlStateManager
             .pushMatrix()
-            .translate(pos.x, pos.y, pos.z)
+            .translate(pos[0], pos[1], pos[2])
             .rotate(-playerViewY, 0, 1, 0)
             .rotate(playerViewX * mult, 1, 0, 0)
             .scale(-distanceScale, -distanceScale, distanceScale)

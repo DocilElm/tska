@@ -94,6 +94,9 @@ const handlePost = (connection, opts) => {
         dataToWrite = body
     }
 
+    // If no data to write is provided we fall back out
+    if (!dataToWrite) return
+
     try {
         streamWriter = new OutputStreamWriter(connection.getOutputStream())
         streamWriter.write(dataToWrite)
@@ -172,7 +175,9 @@ export const request = (opts, resolve, reject) => {
             if (connection.getContentEncoding() === "gzip")
                 stream = new GZIPInputStream(stream)
 
-            const bfreader = new BufferedReader(new InputStreamReader(stream))
+            const contentType = connection.getHeaderField("Content-Type")
+            const isUTF8 = contentType?.includes("application/json") || contentType?.includes("charset=UTF-8")
+            const bfreader = new BufferedReader(isUTF8 ? new InputStreamReader(stream, "UTF-8") : new InputStreamReader(stream))
             let content = ""
 
             while (true) {
