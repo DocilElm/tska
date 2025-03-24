@@ -176,7 +176,7 @@ export const request = (opts, resolve, reject) => {
                 stream = new GZIPInputStream(stream)
 
             const contentType = connection.getHeaderField("Content-Type")
-            const isUTF8 = contentType.includes("application/json") || contentType.includes("charset=UTF-8")
+            const isUTF8 = contentType?.includes("application/json") || contentType?.includes("charset=UTF-8")
             const bfreader = new BufferedReader(isUTF8 ? new InputStreamReader(stream, "UTF-8") : new InputStreamReader(stream))
             let content = ""
 
