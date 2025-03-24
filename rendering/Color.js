@@ -1,23 +1,28 @@
 import { DGlStateManager } from "./DGlStateManager"
 
 /**
- * Get a dynamic color object from an Amaterasu Setting
- * @param {object} settings The settings instance, not the config
- * @param {string} configName 
- * @returns {ColorContainer} Assign this to a constant reference so the listener can keep updating it
- */
-export function amaterasuListener(settings, configName) {
-    const color = new ColorContainer(settings[configName])
-    settings.getConfig().registerListener(configName, (_, curr) => color.set(curr))
-    return color
-}
-
-/**
  * - A handler for colors
  * - Especially useful with listeners
  * - Cuts down multiple operations compared to rgba array when using for rendering
  */
 export class ColorContainer {
+    /**
+     * Get a dynamic color object from an Amaterasu or Vigilance Setting
+     * @param {object} settings The settings instance, not the config
+     * @param {string} configName 
+     * @returns {ColorContainer} Assign this to a constant reference so the listener can keep updating it
+     */
+    static registerListener(settings, configName) {
+        const color = new ColorContainer(settings[configName])
+        const config = settings.getConfig()
+
+        settings instanceof Java.type("gg.essential.vigilance.Vigilant")
+            ? config.registerListener(configName, (newValue) => color.set(newValue))
+            : config.registerListener(configName, (_, newValue) => color.set(newValue))
+
+        return color
+    }
+
     /**
      * @param {number[]|ColorContainer} obj 
      * @returns array of RGBA within [0, 255]
