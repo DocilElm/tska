@@ -71,14 +71,15 @@ export const componentToRealCoords = ([x, z], isIncludingDoors = false) => {
 
 export const isChunkLoaded = (x, y, z) => World.isLoaded() && World.getChunk(x, y, z).chunk./* isLoaded */func_177410_o()
 
-export const realCoordToComponent = ([x, z], isIncludingDoors=false) => {
-    const [x0, z0] = cornerStart
+export const realCoordToComponent = ([x, z], isIncludingDoors = false) => {
+    const [ x0, z0 ] = cornerStart
 
-    let size = isIncludingDoors ? halfCombinedSize : roomDoorCombinedSize
+    const size = isIncludingDoors ? halfCombinedSize : roomDoorCombinedSize
+    const s = 4 + (size - 16 >> 4)
 
     return [
-        Math.floor((x - x0 + 0.5) / size),
-        Math.floor((z - z0 + 0.5) / size)
+        ((x - x0 + 0.5) >> s) >> 0,
+        ((z - z0 + 0.5) >> s) >> 0
     ]
 }
 
