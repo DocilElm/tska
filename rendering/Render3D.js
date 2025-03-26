@@ -2,7 +2,6 @@ import { AxisAlignedBBUtils } from "../utils/AxisAlignedBBUtils"
 import { ColorContainer } from "./Color"
 import { DGlStateManager } from "./DGlStateManager"
 
-const RenderGlobal = Java.type("net.minecraft.client.renderer.RenderGlobal")
 const MCTessellator = Java.type("net.minecraft.client.renderer.Tessellator")./* getInstance */func_178181_a()
 const DefaultVertexFormats = Java.type("net.minecraft.client.renderer.vertex.DefaultVertexFormats")
 const WorldRenderer = MCTessellator./* getWorldRenderer */func_178180_c()
@@ -121,11 +120,14 @@ export class Render3D {
      * - Renders a filled box at the given [AxisAlignedBB]
      * - NOTE: this does not setup anything in the stack, it directly draws.
      * @param {AxisAlignedBB} aabb 
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      */
-    static renderFilledBoundingBox(aabb, color) {
+    static renderFilledBoundingBox(aabb, r, g, b, a) {
         const [ x0, y0, z0, x1, y1, z1 ] = AxisAlignedBBUtils.getBounds(aabb)
-        ColorContainer.color1(color)
+        ColorContainer.color1(r instanceof ColorContainer ? r : [r, g, b, a])
 
         WorldRenderer./* begin */func_181668_a(5, DefaultVertexFormats./* POSITION */field_181705_e)
         WorldRenderer./* pos */func_181662_b(x0, y0, z0)./* endVertex */func_181675_d()
@@ -154,14 +156,24 @@ export class Render3D {
 
     /**
      * - Renders an outlined box at the given [AxisAlignedBB] position
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {AxisAlignedBB} aabb 
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render it on see through walls or not (`false` by default)
      * @param {number} lineWidth The width of the rendering outline (`3` by default)
      * @param {boolean} translate Whether to translate the position to the render view entity position (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      */
-    static renderOutlinedBox(aabb, color, phase = false, lineWidth = 3, translate = true, pticks) {
+    static renderOutlinedBox(aabb, r, g, b, a, phase = false, lineWidth = 3, translate = true, pticks) {
         if (!aabb) return
+        if (r instanceof ColorContainer) {
+            pticks = phase
+            translate = a
+            lineWidth = b
+            phase = g
+        }
 
         const [ realX, realY, realZ ] = Render3D.lerpViewEntity(pticks)
 
@@ -178,7 +190,7 @@ export class Render3D {
         if (translate) DGlStateManager.translate(-realX, -realY, -realZ)
         if (phase) DGlStateManager.disableDepth()
 
-        Render3D.renderOutlinedBoundingBox(aabb, color)
+        Render3D.renderOutlinedBoundingBox(aabb, r, g, b, a)
 
         if (translate) DGlStateManager.translate(realX, realY, realZ)
         if (phase) DGlStateManager.enableDepth()
@@ -195,12 +207,22 @@ export class Render3D {
 
     /**
      * - Renders a filled box at the given [AxisAlignedBB] position
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {AxisAlignedBB} aabb 
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render it on see through walls or not (`false` by default)
      * @param {boolean} translate Whether to translate the position to the render view entity position (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      */
-    static renderFilledBox(aabb, color, phase = false, translate = true, pticks) {
+    static renderFilledBox(aabb, r, g, b, a, phase = false, translate = true, pticks) {
+        if (r instanceof ColorContainer) {
+            pticks = a
+            translate = b
+            phase = g
+        }
+
         const [ realX, realY, realZ ] = Render3D.lerpViewEntity(pticks)
 
         DGlStateManager
@@ -215,7 +237,7 @@ export class Render3D {
         if (translate) DGlStateManager.translate(-realX, -realY, -realZ)
         if (phase) DGlStateManager.disableDepth()
 
-        Render3D.renderFilledBoundingBox(aabb, color)
+        Render3D.renderFilledBoundingBox(aabb, r, g, b, a)
 
         if (translate) DGlStateManager.translate(realX, realY, realZ)
         if (phase) DGlStateManager.enableDepth()
@@ -236,14 +258,23 @@ export class Render3D {
      * @param {number} z Z axis
      * @param {number} w Width
      * @param {number} h Height
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {number} lineWidth The width of the line (`3` by default)
      * @param {boolean} phase Whether to render the box through walls or not (`false` by default)
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      */
-    static renderEntityBox(x, y, z, w, h, color, lineWidth = 3, phase = false, translate = true, pticks = null) {
+    static renderEntityBox(x, y, z, w, h, r, g, b, a, lineWidth = 3, phase = false, translate = true, pticks = null) {
         if (x == null) return
+        if (r instanceof ColorContainer) {
+            pticks = lineWidth
+            translate = a
+            phase = b
+            lineWidth = g
+        }
 
         const axis = AxisAlignedBBUtils.fromBounds(
             x - w / 2,
@@ -254,7 +285,7 @@ export class Render3D {
             z + w / 2
         )
 
-        Render3D.renderOutlinedBox(axis, color, phase, lineWidth, translate, pticks)
+        Render3D.renderOutlinedBox(axis, r, g, b, a, phase, lineWidth, translate, pticks)
         // Re-enable lighting, this will only work if the dev calls this function inside
         // a post/renderentity register otherwise they have to manually disable it to not fuck up the stack
         DGlStateManager.enableLighting()
@@ -267,13 +298,21 @@ export class Render3D {
      * @param {number} z Z axis
      * @param {number} w Width
      * @param {number} h Height
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render the filled box through walls or not (`false` by default)
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      */
-    static renderEntityBoxFilled(x, y, z, w, h, color, phase = false, translate = true, pticks = null) {
+    static renderEntityBoxFilled(x, y, z, w, h, r, g, b, a, phase = false, translate = true, pticks = null) {
         if (x == null) return
+        if (r instanceof ColorContainer) {
+            pticks = a
+            translate = b
+            phase = g
+        }
 
         const axis = AxisAlignedBBUtils.fromBounds(
             x - w / 2,
@@ -284,7 +323,7 @@ export class Render3D {
             z + w / 2
         )
 
-        Render3D.renderFilledBox(axis, color, phase, translate, pticks)
+        Render3D.renderFilledBox(axis, r, g, b, a, phase, translate, pticks)
         // Re-enable lighting, this will only work if the dev calls this function inside
         // a post/renderentity register otherwise they have to manually disable it to not fuck up the stack
         DGlStateManager.enableLighting()
@@ -294,33 +333,50 @@ export class Render3D {
      * - Renders an outline like at the given [Block]
      * - This is (mostly) [Mojang]'s code
      * @param {Block} ctBlock
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render the filled block through walls or not (`false` by default)
      * @param {number} lineWidth The width of the line to outline this block
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      * @returns
      */
-    static outlineBlock(ctBlock, color, phase = false, lineWidth = 3, translate = true, pticks) {
+    static outlineBlock(ctBlock, r, g, b, a, phase = false, lineWidth = 3, translate = true, pticks) {
         if (!ctBlock) return
+        if (r instanceof ColorContainer) {
+            pticks = phase
+            translate = a
+            lineWidth = b
+            phase = g
+        }
 
-        Render3D.renderOutlinedBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), color, phase, lineWidth, translate, pticks)
+        Render3D.renderOutlinedBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, lineWidth, translate, pticks)
     }
 
     /**
      * - Renders a filled block like at the given [Block]
      * @param {Block} ctBlock
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render the filled block through walls or not (`false` by default)
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      * @link Huge thanks to [Ch1ck3nNeedsRNG](https://github.com/PerseusPotter)
      * @returns
      */
-    static filledBlock(ctBlock, color, phase = false, translate = true, pticks) {
+    static filledBlock(ctBlock, r, g, b, a, phase = false, translate = true, pticks) {
         if (!ctBlock) return
+        if (r instanceof ColorContainer) {
+            pticks = a
+            translate = b
+            phase = g
+        }
 
-        Render3D.renderFilledBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), color, phase, translate, pticks)
+        Render3D.renderFilledBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, translate, pticks)
     }
 
     /**
@@ -328,13 +384,21 @@ export class Render3D {
      * @param {number} x X axis
      * @param {number} y Y axis
      * @param {number} z Z axis
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether it should render through walls or not
      * @param {number} height The limit height for the beam to render to (`300` by default)
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      * @link From [NotEnoughUpdates](https://github.com/NotEnoughUpdates/NotEnoughUpdates/blob/master/src/main/java/io/github/moulberry/notenoughupdates/core/util/render/RenderUtils.java#L220)
      */
-    static renderBeaconBeam(x, y, z, color, phase = false, height = 300, translate = true) {
+    static renderBeaconBeam(x, y, z, r, g, b, a, phase = false, height = 300, translate = true) {
+        if (r instanceof ColorContainer) {
+            translate = a
+            height = b
+            phase = g
+        }
         const [ realX, realY, realZ ] = Render3D.lerpViewEntity()
 
         DGlStateManager.pushMatrix()
@@ -342,7 +406,7 @@ export class Render3D {
         if (translate) DGlStateManager.translate(-realX, -realY, -realZ)
         if (phase) DGlStateManager.disableDepth()
 
-        const [r, g, b, a] = ColorContainer.normal1(color)
+        const [r, g, b, a] = ColorContainer.normal1(r instanceof ColorContainer ? r : [r, g, b, a])
 
         Client.getMinecraft()./* getTextureManager */func_110434_K()./* bindTexture */func_110577_a(beaconBeam)
 
@@ -429,13 +493,21 @@ export class Render3D {
      * @param {number} x X axis
      * @param {number} y Y axis
      * @param {number} z Z axis
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render the blocks and waypoint through walls or not (`true` by default)
      * @param {boolean} stringPhase Whether to render the text through walls or not (`true` by default)
      */
-    static renderWaypoint(text, x, y, z, color, phase = true, stringPhase = true) {
+    static renderWaypoint(text, x, y, z, r, g, b, a, phase = true, stringPhase = true) {
+        if (r instanceof ColorContainer) {
+            stringPhase = b
+            phase = g
+        }
         const block = World.getBlockAt(x, y, z)
-        const [r, g, b] = ColorContainer.normal255(color)
+        const color = ColorContainer.normal255(r instanceof ColorContainer ? r : [r, g, b, a])
+        const [r, g, b] = color
 
         Render3D.outlineBlock(block, color, phase)
         Render3D.filledBlock(block, [r, g, b, 50], phase)
@@ -446,12 +518,20 @@ export class Render3D {
     /**
      * - Renders a line through the given points
      * @param {number[][]} points The points in an array of arrays
-     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
+     * @param {number} g Green (`0` - `255`)
+     * @param {number} b Blue (`0` - `255`)
+     * @param {number} a Alpha (`0` - `255`)
      * @param {boolean} phase Whether to render the lines through walls or not (`true` by default)
      * @param {number} lineWidth The width of the line
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      */
-    static renderLines(points, color, phase = true, lineWidth = 3, translate = true) {
+    static renderLines(points, r, g, b, a, phase = true, lineWidth = 3, translate = true) {
+        if (r instanceof ColorContainer) {
+            translate = a
+            lineWidth = b
+            phase = g
+        }
         const [ realX, realY, realZ ] = Render3D.lerpViewEntity()
 
         GL11.glLineWidth(lineWidth)
@@ -466,7 +546,7 @@ export class Render3D {
         if (translate) DGlStateManager.translate(-realX, -realY, -realZ)
         if (phase) DGlStateManager.disableDepth()
 
-        ColorContainer.color1(color)
+        ColorContainer.color1(r instanceof ColorContainer ? r : [r, g, b, a])
 
         WorldRenderer./* begin */func_181668_a(3, DefaultVertexFormats./* POSITION */field_181705_e)
         for (let it of points) {
