@@ -1,5 +1,5 @@
 /**
- * - Custom array class that acts similarly to Maps or Sets
+ * - Custom array class that acts similarly to Maps
  * - This is simply to abstract away having to implement certain
  * functionalities that these provide as is, i.e. `has(item)`
  */
