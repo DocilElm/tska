@@ -27,6 +27,8 @@ export class MapArray {
      * @returns {this} this for method chaining
      */
     push(k, v) {
+        if (k == null) return
+
         this.array.push({ k, v })
 
         return this
@@ -41,7 +43,7 @@ export class MapArray {
      * @returns {this} this for method chaining
      */
     pushCheck(k, v) {
-        if (this.has(k)) return this
+        if (k == null || this.has(k)) return this
 
         this.array.push({ k, v })
 

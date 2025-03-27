@@ -25,6 +25,7 @@ export class SetArray {
      * @returns {this} this for method chaining
      */
     push(v) {
+        if (v == null) return
         this.array.push(v)
 
         return this
@@ -38,9 +39,9 @@ export class SetArray {
      * @returns {this} this for method chaining
      */
     pushCheck(v) {
-        if (this.has(v)) return
+        if (v == null || this.has(v)) return
 
-        this.array.push(this)
+        this.array.push(v)
 
         return this
     }
