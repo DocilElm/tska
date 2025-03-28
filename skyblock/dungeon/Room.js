@@ -148,7 +148,6 @@ export class Room {
                 let [ dx, dz ] = offsets[jdx]
                 let [ nx, nz ] = [ x + dx, z + dz ]
 
-                if (!isChunkLoaded(nx, this.height, nz)) continue
                 if (!isChunkLoaded(nx, this.height, nz)) return
 
                 let block = World.getBlockAt(nx, this.height, nz)
