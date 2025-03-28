@@ -46,7 +46,7 @@ export class ColorContainer {
      * @param {number[]|ColorContainer} obj 
      */
     static color255(obj) {
-        if (Array.isArray(obj)) return DGlStateManager.color(obj[0] / 255, obj[1] / 255, obj[2] / 255, obj[3] / 255)
+        if (Array.isArray(obj)) return DGlStateManager.color(obj[0] / 0xff, obj[1] / 0xff, obj[2] / 0xff, obj[3] / 0xff)
         else if (obj instanceof ColorContainer) return obj.glColor()
     }
 
@@ -90,14 +90,24 @@ export class ColorContainer {
         this.set(rgba255Array)
     }
 
-    /** @returns {[number, number, number, number]} 4 ints within [0, 255] */
-    getRGBA255() {
-        return this.rgba255
+    /** 
+     * @param {?alpha} alpha Setting alpha here can help with multiple drawings on the same stack using the same color
+     * @returns {[number, number, number, number]} 4 ints within [0, 255] 
+     */
+    getRGBA255(alpha) {
+        const copy = this.rgba255.slice()
+        if (typeof(alpha) === "number") copy[3] = alpha
+        return copy
     }
 
-    /** @returns {[number, number, number, number]} 4 floats within [0, 1] */
-    getRGBA1() {
-        return this.rgba1
+    /** 
+     * @param {?alpha} alpha Setting alpha here can help with multiple drawings on the same stack using the same color
+     * @returns {[number, number, number, number]} 4 floats within [0, 1] 
+     */
+    getRGBA1(alpha) {
+        const copy = this.rgba1.slice()
+        if (typeof(alpha) === "number") copy[3] = alpha
+        return copy
     }
 
     /**
@@ -115,7 +125,8 @@ export class ColorContainer {
      * @returns {number} int between [0, 2^32)
      */
     getFontHex() {
-        return this.argbHex
+        // Bitwise OR to return a number that can convert to [java.lang.Integer]
+        return this.argbHex | 0
     }
 
     /**
@@ -139,9 +150,9 @@ export class ColorContainer {
 
     /**
      * - Colorizes the GL stack with this color
-     * - Setting alpha here can help with multiple drawings on the same stack using the same color
+     * @param {?number} alpha Setting alpha here can help with multiple drawings on the same stack using the same color
      */
-    glColor() {
-        DGlStateManager.color(this.rgba1[0], this.rgba1[1], this.rgba1[2], this.rgba1[3])
+    glColor(alpha = this.rgba1[3]) {
+        DGlStateManager.color(this.rgba1[0], this.rgba1[1], this.rgba1[2], alpha)
     }
 }
