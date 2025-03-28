@@ -226,6 +226,7 @@ export default new class DungeonScanner {
 
         for (let comp of room2.comps) {
             if (!room1.hasComponent(comp[0], comp[2])) {
+            if (!room1.hasComponent(comp[0], comp[1])) {
                 room1.addComponent(comp, false)
             }
 
