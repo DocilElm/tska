@@ -149,6 +149,7 @@ export class Room {
                 let [ nx, nz ] = [ x + dx, z + dz ]
 
                 if (!isChunkLoaded(nx, this.height, nz)) continue
+                if (!isChunkLoaded(nx, this.height, nz)) return
 
                 let block = World.getBlockAt(nx, this.height, nz)
                 if (block.type.getID() !== 159 || block.getMetadata() !== 11) continue
