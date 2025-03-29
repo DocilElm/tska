@@ -1,6 +1,5 @@
 const SimpleDateFormat = Java.type("java.text.SimpleDateFormat")
 const Locale = Java.type("java.util.Locale")
-const DefaultLocale = Locale.US
 const ZERO = Date.parse("1/1/1970")
 
 /** 
@@ -9,8 +8,8 @@ const ZERO = Date.parse("1/1/1970")
  * - Date#toLocaleString creates a new formatter object each call
  */
 export class ClockFormat {
-    constructor(pattern = "hh:mm:ss a", locale = DefaultLocale) {
-        this._formatter = new SimpleDateFormat(pattern, locale)
+    constructor(pattern = "hh:mm:ss a", locale = "US") {
+        this._formatter = new SimpleDateFormat(pattern, Locale[locale])
     }
 
     format(time = Date.now()) {
@@ -20,11 +19,11 @@ export class ClockFormat {
 
 /** 
  * - Formats a time difference
- * - allowed range [0, 86_400_000]
+ * - allowed range [0, 86_400_000] ms
  */
-export class TimerFormat extends ClockFormat {
-    constructor(pattern = "s.SSS's'", locale = DefaultLocale) {
-        super(pattern, locale)
+export class TimerFormat {
+    constructor(pattern = "s.SSS's'", locale) {
+        this._formatter = new SimpleDateFormat(pattern, Locale[locale])
     }
 
     format(time) {
