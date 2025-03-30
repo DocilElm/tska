@@ -1,23 +1,26 @@
 /**
- * - Custom array class that acts similarly to Maps
- * - This is simply to abstract away having to implement certain
- * functionalities that these provide as is, i.e. `has(item)`
+ * - Custom Map class that uses a `HashMap` as the underlying "list" (map)
+ * - Manages most of the functionalities of a `HashMap` in here
  */
 export class MapArray {
-    constructor() {
-        this.array = []
+    constructor(size = 16, loadFactor = 0.75) {
+        /**
+         * * The underlying `HashMap` that is used for this class
+         * @private
+         */
+        this._hashMap = new HashMap(size || 16, loadFactor || 0.75)
     }
 
     /**
      * - Gets an item from the
-     * @param {any} k The key/item to get
-     * @returns {{ k: any, v: any }}
+     * - If no key is provided it'll return the underlying `HashMap`
+     * @param {?any} k The key/item to get
+     * @returns {any}
      */
     get(k) {
-        const idx = this._findIdx(k)
-        if (idx === -1) return
+        if (!k) return this._hashMap
 
-        return this.array[idx]
+        return this._hashMap.get(k)
     }
 
     /**
@@ -29,7 +32,7 @@ export class MapArray {
     push(k, v) {
         if (k == null) return
 
-        this.array.push({ k, v })
+        this._hashMap.put(k, v)
 
         return this
     }
@@ -43,9 +46,9 @@ export class MapArray {
      * @returns {this} this for method chaining
      */
     pushCheck(k, v) {
-        if (k == null || this.has(k)) return this
+        if (k == null) return this
 
-        this.array.push({ k, v })
+        this._hashMap.putIfAbsent(k, v)
 
         return this
     }
@@ -56,21 +59,18 @@ export class MapArray {
      * @returns {boolean}
      */
     has(k) {
-        return this._findIdx(k) !== -1
+        return this._hashMap.containsKey(k)
     }
 
     /**
      * - Sets the value of the specified key
      * @param {*} k The key
      * @param {*} v The value
-     * @returns {boolean}
+     * @returns {this} this for method chaining
      */
     set(k, v) {
-        const idx = this._findIdx(k)
-        if (idx === -1) return false
-
-        this.array[idx].v = v
-        return true
+        this._hashMap.replace(k, v)
+        return this
     }
 
     /**
@@ -79,11 +79,12 @@ export class MapArray {
      * @returns {boolean}
      */
     remove(k) {
-        const idx = this._findIdx(k)
-        if (idx === -1) return false
+        if (this.has(k)) {
+            this._hashMap.remove(k)
+            return true
+        }
 
-        this.array.splice(idx, 1)
-        return true
+        return false
     }
 
     /**
@@ -95,12 +96,9 @@ export class MapArray {
         return this.remove(k)
     }
 
-    /**
-     * @private
-     * @param {*} k The key to find
-     * @returns {number}
-     */
-    _findIdx(k) {
-        return this.array.findIndex((it) => it.k === k)
+    clear() {
+        this._hashMap.clear()
+
+        return this
     }
 }
