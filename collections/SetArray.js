@@ -1,11 +1,10 @@
 /**
- * - Custom array class that acts similarly to Sets
- * - This is simply to abstract away having to implement certain
- * functionalities that these provide as is, i.e. `has(item)`
+ * - Custom Set class that uses a `HashMap` as the underlying "list" (map)
+ * - Manages most of the functionalities of a `"HashSet"` in here (not a real HashSet but sort of works like one)
  */
 export class SetArray {
-    constructor() {
-        this.array = []
+    constructor(size = 16, loadFactor = 0.75) {
+        this._hashMap = new HashMap(size || 16, loadFactor || 0.75)
     }
 
     /**
@@ -14,9 +13,9 @@ export class SetArray {
      * @returns {*}
      */
     get(idx) {
-        if (idx >= this.array.length) return
+        if (idx >= this.size()) return
 
-        return this.array[idx]
+        return this._hashMap.get(idx)
     }
 
     /**
@@ -26,7 +25,8 @@ export class SetArray {
      */
     push(v) {
         if (v == null) return
-        this.array.push(v)
+
+        this._hashMap.put(this.size(), v)
 
         return this
     }
@@ -39,9 +39,9 @@ export class SetArray {
      * @returns {this} this for method chaining
      */
     pushCheck(v) {
-        if (v == null || this.has(v)) return
+        if (v == null) return
 
-        this.array.push(v)
+        this._hashMap.putIfAbsent(this.size(), v)
 
         return this
     }
@@ -53,9 +53,9 @@ export class SetArray {
      * @returns {boolean}
      */
     set(idx, v) {
-        if (idx >= this.array.length) return false
+        if (idx >= this.size()) return false
 
-        this.array[idx] = v
+        this._hashMap.replace(idx, v)
 
         return true
     }
@@ -66,12 +66,18 @@ export class SetArray {
      * @returns {boolean}
      */
     remove(v) {
-        const idx = this._findIdx(v)
-        if (idx === -1) return false
+        if (this.has(v)) {
+            for (let idx = 0; idx < this.size(); idx++) {
+                let val = this.get(idx)
+                if (val !== v) continue
 
-        this.array.splice(idx, 1)
+                this._hashMap.remove(idx)
+                break
+            }
+            return true
+        }
 
-        return true
+        return false
     }
 
     /**
@@ -89,11 +95,16 @@ export class SetArray {
      * @returns {boolean}
      */
     has(v) {
-        return this._findIdx(v) !== -1
+        return this._hashMap.containsValue(v)
     }
 
-    /** @private */
-    _findIdx(v) {
-        return this.array.findIndex((it) => it === v)
+    size() {
+        return this._hashMap.size()
+    }
+
+    clear() {
+        this._hashMap.clear()
+
+        return this
     }
 }
