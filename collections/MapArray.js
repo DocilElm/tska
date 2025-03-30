@@ -101,4 +101,10 @@ export class MapArray {
 
         return this
     }
+
+    forEach(cb) {
+        this._hashMap.forEach((k, v) => cb(k, v))
+
+        return this
+    }
 }

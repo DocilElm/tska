@@ -150,11 +150,11 @@ export default new class DungeonScanner {
             // TODO: make checkmarked room array
             let check = null
             if (center === 30 && rcolor !== 30) {
-                if (!room.checkmark || room.checkmark === Checkmark.UNEXPLORED) this.roomCleared(room)
+                if (room.checkmark !== Checkmark.GREEN) this.roomCleared(room, Checkmark.GREEN)
                 check = Checkmark.GREEN
             }
             else if (center === 34) {
-                if (!room.checkmark || room.checkmark === Checkmark.UNEXPLORED) this.roomCleared(room)
+                if (room.checkmark !== Checkmark.WHITE) this.roomCleared(room, Checkmark.WHITE)
                 check = Checkmark.WHITE
             }
             else if (center === 18 && rcolor !== 18) check = Checkmark.FAILED
@@ -383,15 +383,20 @@ export default new class DungeonScanner {
      * @private
      * @param {Room} room
      */
-    roomCleared(room) {
+    roomCleared(room, check) {
         let players = room.players
+        let isGreen = check === Checkmark.GREEN
 
         for (let idx = 0; idx < players.size(); idx++) {
+            /** @type {DungeonPlayer} */
             let v = players.get(idx)
             if (!v) continue
 
-            if (players.size() === 1) v.clearedRooms.solo++
-            else v.clearedRooms.stack++
+            v.clearedRooms[isGreen ? "GREEN" : "WHITE"].pushCheck(room.name, {
+                time: v.visitedRooms.get(room),
+                room,
+                solo: players.size() === 1,
+            })
         }
     }
 
@@ -401,12 +406,14 @@ export default new class DungeonScanner {
             // Check player's rooms
             for (let v of this.players) {
                 let p = World.getPlayerByName(v.name)
+                let ping = p.getPing()
                 // Since map (9th slot) doesn't update that frequently we can afford
                 // to "simulate" the way its updated with the `inRender` players as well
                 if (ticks !== 0 && ticks % 4 === 0 && p) {
-                    if (p.getPing() !== -1) this.onPlayerMove(v, p.getX(), p.getZ(), p.getYaw())
+                    if (ping !== -1) this.onPlayerMove(v, p.getX(), p.getZ(), p.getYaw())
                     else v.inRender = false
                 }
+                if (ping === -1) continue
 
                 let curr = v.currentRoom
                 if (!curr) continue

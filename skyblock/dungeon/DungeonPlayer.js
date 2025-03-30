@@ -12,12 +12,24 @@ export class DungeonPlayer {
         this.realZ = null
         this.currentRoom = null
         this.visitedRooms = new MapArray()
-        this.clearedRooms = { solo: 0, stack: 0 }
+        // this.clearedRooms = { solo: 0, stack: 0 }
+        this.clearedRooms = {
+            WHITE: new MapArray(),
+            GREEN: new MapArray()
+        }
         this.deaths = 0
         // this.secrets = 0
 
         this.lastRoomCheck = null
         this.lastRoom = null
+    }
+
+    getGreenChecks() {
+        return this.clearedRooms.GREEN
+    }
+
+    getWhiteChecks() {
+        return this.clearedRooms.WHITE
     }
 
     toString() {

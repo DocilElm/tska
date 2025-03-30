@@ -107,4 +107,10 @@ export class SetArray {
 
         return this
     }
+
+    forEach(cb) {
+        this._hashMap.forEach((k, v) => cb(v))
+
+        return this
+    }
 }
