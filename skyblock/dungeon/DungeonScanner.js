@@ -1,3 +1,4 @@
+import { SetArray } from "../../collections/SetArray"
 import InternalEvents from "../../event/InternalEvents"
 import Location from "../Location"
 import { Door } from "./Door"
@@ -29,6 +30,10 @@ export default new class DungeonScanner {
         this.doors = new Array(60).fill(null)
         /** @private */
         this.availablePos = getScanCoords()
+        /** @private */
+        this.uniqueRooms = new SetArray()
+        /** @private */
+        this.uniqueDoors = new SetArray()
         /** @type {DungeonPlayer[]} */
         this.players = []
 
@@ -94,6 +99,8 @@ export default new class DungeonScanner {
         this.availablePos = getScanCoords()
         this.rooms.fill(null)
         this.doors.fill(null)
+        this.uniqueDoors.clear()
+        this.uniqueRooms.clear()
         this.currentRoom = null
         this.lastIdx = null
         this.players = []
@@ -320,10 +327,13 @@ export default new class DungeonScanner {
         if (idx < 0 || idx > 59) return
 
         this.doors[idx] = door
+        this.uniqueDoors.pushCheck(door)
     }
 
     /** @private */
     mergeRooms(room1, room2) {
+        this.uniqueRooms.remove(room2)
+
         for (let comp of room2.comps) {
             if (!room1.hasComponent(comp[0], comp[1])) {
                 room1.addComponent(comp, false)
@@ -331,6 +341,8 @@ export default new class DungeonScanner {
 
             this.rooms[this.getRoomIdx(comp)] = room1
         }
+
+        if (!this.uniqueRooms.has(room1)) this.uniqueRooms.push(room1)
 
         room1._update()
     }
@@ -357,9 +369,9 @@ export default new class DungeonScanner {
 
     /** @private */
     checkDoorState() {
-        for (let door of this.doors) {
-            if (!door) continue
-            if (door.opened) continue
+        for (let idx = 0; idx < this.uniqueDoors.size(); idx++) {
+            let door = this.uniqueDoors.get(idx)
+            if (!door || door.opened) continue
 
             door.check()
         }
@@ -372,10 +384,13 @@ export default new class DungeonScanner {
      * @param {Room} room
      */
     roomCleared(room) {
-        let players = room.players.array
+        let players = room.players
 
-        for (let v of players) {
-            if (players.length === 1) v.clearedRooms.solo++
+        for (let idx = 0; idx < players.size(); idx++) {
+            let v = players.get(idx)
+            if (!v) continue
+
+            if (players.size() === 1) v.clearedRooms.solo++
             else v.clearedRooms.stack++
         }
     }
@@ -402,7 +417,7 @@ export default new class DungeonScanner {
                 }
 
                 v.visitedRooms.pushCheck(curr, 0)
-                if (v.lastRoomCheck) v.visitedRooms.set(curr, (v.visitedRooms.get(curr)?.v || 0) + Date.now() - v.lastRoomCheck)
+                if (v.lastRoomCheck) v.visitedRooms.set(curr, (v.visitedRooms.get(curr) || 0) + Date.now() - v.lastRoomCheck)
 
                 v.lastRoomCheck = Date.now()
                 v.lastRoom = curr
@@ -449,6 +464,7 @@ export default new class DungeonScanner {
 
             let cdx = this.getRoomIdx([x, z])
             let room = new Room([[x, z]], roofHeight).scan()
+            this.uniqueRooms.pushCheck(room)
             this.rooms[cdx] = room
 
             for (let dir of directions) {
