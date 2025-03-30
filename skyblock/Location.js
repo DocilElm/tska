@@ -62,14 +62,14 @@ export default new class Location {
             register("packetReceived", (packet) => {
                 const channel = packet./* getAction */func_149307_h()
                 if (channel !== 2) return
-    
+
                 const teamStr = packet./* getName */func_149312_c()
                 const teamMatch = teamStr.match(/^team_(\d+)$/)
                 if (!teamMatch) return
-    
+
                 const formatted = packet./* getPrefix */func_149311_e().concat(packet./* getSuffix */func_149309_f())
                 const unformatted = formatted.removeFormatting()
-    
+
                 if (!/^ (⏣|ф)/.test(unformatted)) return
 
                 this.subarea = unformatted.toLowerCase()
@@ -83,14 +83,14 @@ export default new class Location {
             register("packetReceived", (packet) => {
                 const players = packet./* getEntries */func_179767_a()
                 const action = packet./* getAction */func_179768_b()
-    
+
                 if (action !== S38PacketPlayerListItem.Action.ADD_PLAYER) return
-    
+
                 players.forEach(addPlayerData => {
                     const name = addPlayerData./* getDisplayName */func_179961_d()
-                    
+
                     if (!name) return
-    
+
                     const formatted = name./* getFormattedText */func_150254_d()
                     const unformatted = formatted.removeFormatting()
 

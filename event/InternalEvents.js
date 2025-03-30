@@ -23,6 +23,7 @@ export default new class InternalEvent {
             .createEvent("scoreboard")
             .createEvent("tabadd")
             .createEvent("tabupdate")
+            .createEvent("scoreboardclear")
             .init()
     }
 
@@ -43,6 +44,7 @@ export default new class InternalEvent {
                     if (!name) return
 
                     this.post("scoreboard", name.removeFormatting(), name)
+                    this.post("scoreboardclear", name.removeFormatting().replace(/[^\u0000-\u007F]/g, ""), name)
                 })
 
                 TabList?.getNames()?.forEach((it) => {
@@ -71,6 +73,7 @@ export default new class InternalEvent {
                 const unformatted = formatted.removeFormatting()
 
                 this.post("scoreboard", unformatted, formatted, event)
+                this.post("scoreboardclear", unformatted.replace(/[^\u0000-\u007F]/g, ""), formatted, event)
             }).setFilteredClass(net.minecraft.network.play.server.S3EPacketTeams)
         )
         .push(
