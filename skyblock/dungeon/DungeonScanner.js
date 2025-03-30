@@ -1,7 +1,20 @@
+import InternalEvents from "../../event/InternalEvents"
 import Location from "../Location"
 import { Door } from "./Door"
+import Dungeon from "./Dungeon"
+import { DungeonPlayer } from "./DungeonPlayer"
 import { Room } from "./Room"
-import { DoorTypes, RoomTypes, directions, getHighestY, getScanCoords, isChunkLoaded, realCoordToComponent } from "./Utils"
+import { Checkmark, DoorTypes, RoomTypes, defaultMapSize, directions, getHighestY, getScanCoords, isChunkLoaded, realCoordToComponent } from "./Utils"
+
+// TODO: add this to its own class
+const clampMap = (n, inMin, inMax, outMin, outMax) => {
+    if (n <= inMin) return outMin
+    if (n >= inMax) return outMax
+
+    return (n - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
+}
+
+const isBetween = (n, min, max) => (n - min >>> 31) + (max - n >>> 31) === 0
 
 /**
  * - Utilities for getting the current location of the player inside of dungeons
@@ -16,6 +29,8 @@ export default new class DungeonScanner {
         this.doors = new Array(60).fill(null)
         /** @private */
         this.availablePos = getScanCoords()
+        /** @type {DungeonPlayer[]} */
+        this.players = []
 
         /** @private */
         this._roomEnterListener = []
@@ -25,7 +40,7 @@ export default new class DungeonScanner {
         /** @private */
         this.lastIdx = null
         /** @private */
-        this.tickRegister = register("tick", () => {
+        this.tickRegister = register("tick", (ticks) => {
             const [ x, z ] = realCoordToComponent([Player.getX(), Player.getZ()])
             const idx = 6 * z + x
 
@@ -36,6 +51,7 @@ export default new class DungeonScanner {
             this.checkRoomState()
             // Checks whether a door is opened or not
             this.checkDoorState()
+            this.checkPlayerState(ticks)
 
             // Outside the room's bounds since only 36 total rooms is possible
             // this means that the player is either on an unknown place or in boss room
@@ -45,7 +61,7 @@ export default new class DungeonScanner {
             if (
                 this.lastIdx !== null &&
                 this.lastIdx !== idx &&
-                this.rooms[this.lastIdx]?.name !== this.rooms[idx]?.name
+                this.rooms?.[this.lastIdx]?.name !== this.rooms?.[idx]?.name
                 ) {
                 for (let cb of this._roomLeaveListener) cb(this.rooms[idx], this.rooms[this.lastIdx])
             }
@@ -66,6 +82,8 @@ export default new class DungeonScanner {
 
             this.tickRegister.register()
         })
+
+        InternalEvents.on("mapdata", (data) => this.onMapData(data))
     }
 
     /**
@@ -78,6 +96,88 @@ export default new class DungeonScanner {
         this.doors.fill(null)
         this.currentRoom = null
         this.lastIdx = null
+        this.players = []
+    }
+
+    /** @private */
+    onMapData(data) {
+        if (!Dungeon.mapCorners || !data) return
+
+        for (let k of Object.keys(Dungeon.icons)) {
+            let v = Dungeon.icons[k]
+            /** @type {DungeonPlayer} */
+            let player = this.players.find((it) => it?.name === v?.name)
+            if (!player || player.inRender) continue
+
+            player.iconX = clampMap(v.x / 2 - Dungeon.mapCorners[0], 0, Dungeon.mapRoomSize * 6 + 20, 0, defaultMapSize[0])
+            player.iconZ = clampMap(v.y / 2 - Dungeon.mapCorners[1], 0, Dungeon.mapRoomSize * 6 + 20, 0, defaultMapSize[1])
+            player.realX = clampMap(player.iconX, 0, 125, -200, -10)
+            player.realZ = clampMap(player.iconZ, 0, 125, -200, -10)
+            player.rotation = v.rotation
+            player.currentRoom = this.getRoomAt(player.realX, player.realZ)
+            player.currentRoom?.players?.pushCheck(player)
+        }
+
+        const colors = data./* colors */field_76198_e
+        if (!colors || colors.length < 16384) return
+
+        for (let room of this.rooms) {
+            if (!room || !room.comps.length) continue
+
+            let [ x, z ] = room.comps[0]
+            let mx = Dungeon.mapCorners[0] + Math.floor(Dungeon.mapRoomSize / 2) + Dungeon.mapGapSize * x
+            let my = Dungeon.mapCorners[1] + Math.floor(Dungeon.mapRoomSize / 2) + 1 + Dungeon.mapGapSize * z
+            let idx = mx + my * 128
+
+            let center = colors[idx - 1]
+            let rcolor = colors[idx + 5 + 128 * 4]
+            if (rcolor === 0 || rcolor === 85) {
+                room.explored = false
+                continue
+            }
+
+            room.explored = true
+
+            if (room.type === RoomTypes.NORMAL && !room.height) room.loadFromMapColor(rcolor)
+
+            // TODO: make checkmarked room array
+            let check = null
+            if (center === 30 && rcolor !== 30) {
+                if (!room.checkmark || room.checkmark === Checkmark.UNEXPLORED) this.roomCleared(room)
+                check = Checkmark.GREEN
+            }
+            else if (center === 34) {
+                if (!room.checkmark || room.checkmark === Checkmark.UNEXPLORED) this.roomCleared(room)
+                check = Checkmark.WHITE
+            }
+            else if (center === 18 && rcolor !== 18) check = Checkmark.FAILED
+            else if (room.checkmark === Checkmark.UNEXPLORED) check = Checkmark.NONE
+
+            // if (room.checkmark !== check && check !== Checkmark.NONE) // handle checkmarked push room here
+            room.checkmark = check
+        }
+    }
+
+    /**
+     * @private
+     * @param {DungeonPlayer} entity
+     * @param {number} x
+     * @param {number} z
+     * @param {number} yaw
+     * @returns 
+     */
+    onPlayerMove(entity, x, z, yaw) {
+        if (!entity || !isBetween(x, -200, -10) || !isBetween(z, -200, -10)) return
+
+        entity.inRender = true
+        entity.iconX = clampMap(x, -200, -10, 0, defaultMapSize[0])
+        entity.iconZ = clampMap(z, -200, -10, 0, defaultMapSize[1])
+        entity.realX = x
+        entity.realZ = z
+        entity.rotation = yaw + 180
+
+        let curr = this.getRoomAt(x, z)
+        entity.currentRoom = curr
     }
 
     /**
@@ -149,7 +249,8 @@ export default new class DungeonScanner {
      * @returns {?Room}
      */
     getRoomAt(x, z) {
-        const idx = this.getRoomIdx([x, z])
+        const comp = realCoordToComponent([x, z])
+        const idx = this.getRoomIdx(comp)
         if (idx < 0 || idx > 35) return
 
         return this.rooms[idx]
@@ -197,7 +298,8 @@ export default new class DungeonScanner {
      * @returns {?Door}
      */
     getDoorAt(x, z) {
-        const idx = this.getDoorIdx([x, z])
+        const comp = realCoordToComponent([x, z])
+        const idx = this.getDoorIdx(comp)
         if (idx < 0 || idx > 59) return
 
         return this.doors[idx]
@@ -222,8 +324,6 @@ export default new class DungeonScanner {
 
     /** @private */
     mergeRooms(room1, room2) {
-        this.removeRoom(room2)
-
         for (let comp of room2.comps) {
             if (!room1.hasComponent(comp[0], comp[1])) {
                 room1.addComponent(comp, false)
@@ -265,6 +365,57 @@ export default new class DungeonScanner {
         }
 
         return this
+    }
+
+    /**
+     * @private
+     * @param {Room} room
+     */
+    roomCleared(room) {
+        let players = room.players.array
+
+        for (let v of players) {
+            if (players.length === 1) v.clearedRooms.solo++
+            else v.clearedRooms.stack++
+        }
+    }
+
+    /** @private */
+    checkPlayerState(ticks = 0) {
+        if (this.players.length === Dungeon.partyMembers.length) {
+            // Check player's rooms
+            for (let v of this.players) {
+                let p = World.getPlayerByName(v.name)
+                // Since map (9th slot) doesn't update that frequently we can afford
+                // to "simulate" the way its updated with the `inRender` players as well
+                if (ticks !== 0 && ticks % 4 === 0 && p) {
+                    if (p.getPing() !== -1) this.onPlayerMove(v, p.getX(), p.getZ(), p.getYaw())
+                    else v.inRender = false
+                }
+
+                let curr = v.currentRoom
+                if (!curr) continue
+
+                if (curr !== v.lastRoom) {
+                    if (v.lastRoom && v.lastRoom.players.has(v)) v.lastRoom.players.remove(v)
+                    curr.players.pushCheck(v)
+                }
+
+                v.visitedRooms.pushCheck(curr, 0)
+                if (v.lastRoomCheck) v.visitedRooms.set(curr, (v.visitedRooms.get(curr)?.v || 0) + Date.now() - v.lastRoomCheck)
+
+                v.lastRoomCheck = Date.now()
+                v.lastRoom = curr
+            }
+
+            return
+        }
+
+        for (let v of Dungeon.partyMembers) {
+            if (this.players.find((it) => it.name === v) || World.getPlayerByName(v)?.getPing() === -1) continue
+
+            this.players.push(new DungeonPlayer(v))
+        }
     }
 
     /** @private */
@@ -324,13 +475,15 @@ export default new class DungeonScanner {
                 let ndx = this.getRoomIdx(ncomp)
                 if (ndx < 0 || ndx > 35) continue
 
-                if (!this.rooms[ndx]) {
+                let nroom = this.rooms[ndx]
+
+                if (!nroom) {
                     room.addComponent(ncomp)
                     this.rooms[ndx] = room
                     continue
                 }
 
-                let exists = this.rooms[ndx]
+                let exists = nroom
                 if (exists.type === RoomTypes.ENTRANCE || exists === room) continue
 
                 this.mergeRooms(exists, room)

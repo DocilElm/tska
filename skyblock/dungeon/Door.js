@@ -8,11 +8,9 @@ export class Door {
         // this.explored = false
         this.opened = false
         this.rotation = null
-        /**
-         * - As of tska `v1.4.1` this does not currently handle
-         * door types properly, in the future it will
-         */
         this.type = DoorTypes.NORMAL
+
+        if (comp[0] !== 0 && comp[1] !== 0) this.checkType()
     }
 
     /**
@@ -51,5 +49,21 @@ export class Door {
         if (!isChunkLoaded(x, y, z)) return
 
         this.opened = World.getBlockAt(x, y, z).type.getID() === 0
+    }
+
+    /** @private */
+    checkType() {
+        const [ x, y, z ] = this.getPos()
+        if (!isChunkLoaded(x, y, z)) return
+
+        const id = World.getBlockAt(x, y, z).type.getID()
+
+        if (id === 0 || id === 166) return
+
+        if (id === 97) this.type = DoorTypes.ENTRANCE
+        if (id === 173) this.type = DoorTypes.WITHER
+        if (id === 159) this.type = DoorTypes.BLOOD
+
+        this.opened = false
     }
 }

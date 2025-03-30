@@ -1,5 +1,6 @@
+import { SetArray } from "../../collections/SetArray"
 import { DataStore } from "../../storage/DataStore"
-import { ClearTypes, RoomTypes, RoomTypesStrings, componentToRealCoords, getCore, getHighestY, getRoomShape, halfRoomSize, isChunkLoaded, rotateCoords } from "./Utils"
+import { Checkmark, ClearTypes, MapColorToRoomType, RoomTypes, RoomTypesStrings, componentToRealCoords, getCore, getHighestY, getRoomShape, halfRoomSize, isChunkLoaded, rotateCoords } from "./Utils"
 
 const offsets = [[-halfRoomSize, -halfRoomSize], [halfRoomSize, -halfRoomSize], [halfRoomSize, halfRoomSize], [-halfRoomSize, halfRoomSize]]
 const roomsJson = DataStore.fromFileOrUrl("tska", "data/rooms.json", "https://raw.githubusercontent.com/DocilElm/Doc-Data/refs/heads/main/dungeons/rooms.json", 86400000)
@@ -16,6 +17,7 @@ export class Room {
         this.cores = []
 
         // Room data
+        this.explored = false
         this.name = null
         this.corner = null
         this.rotation = null
@@ -25,6 +27,8 @@ export class Room {
         this.shape = "1x1"
         this.secrets = 0
         this.crypts = 0
+        this.checkmark = Checkmark.UNEXPLORED
+        this.players = new SetArray()
 
         // Init
         this.addComponents(comp)
@@ -52,6 +56,16 @@ export class Room {
         }
 
         return false
+    }
+
+    /** @private */
+    loadFromMapColor(color) {
+        this.type = MapColorToRoomType.get(color) ?? RoomTypes.NORMAL
+
+        if (this.type === RoomTypes.BLOOD) this.loadFromData(roomsJson.find((it) => it.name === "Blood"))
+        if (this.type === RoomTypes.ENTRANCE) this.loadFromData(roomsJson.find((it) => it.name === "Entrance"))
+
+        return this
     }
 
     /**

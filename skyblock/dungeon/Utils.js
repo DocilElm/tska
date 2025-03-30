@@ -11,6 +11,7 @@ export const directions = [
     [0, halfCombinedSize, 0, 1],
     [0, -halfCombinedSize, 0, -1]
 ]
+export const defaultMapSize = [125, 125]
 
 export const getHighestY = (x, z) => {
     for (let idx = 256; idx > 0; idx--) {
@@ -78,8 +79,8 @@ export const realCoordToComponent = ([x, z], isIncludingDoors = false) => {
     const s = 4 + (size - 16 >> 4)
 
     return [
-        ((x - x0 + 0.5) >> s) >> 0,
-        ((z - z0 + 0.5) >> s) >> 0
+        (x - x0 + 0.5) >> s,
+        (z - z0 + 0.5) >> s
     ]
 }
 
@@ -147,3 +148,13 @@ export const getRoomShape = (components) => {
     if (new Set(components.map(a => a[0])).size == components.length || new Set(components.map(a => a[1])).size == components.length) return "1x3"
     return "L"
 }
+
+export const MapColorToRoomType = new Map([
+    [18, RoomTypes.BLOOD],
+    [30, RoomTypes.ENTRANCE],
+    [63, RoomTypes.NORMAL],
+    [82, RoomTypes.FAIRY],
+    [62, RoomTypes.TRAP],
+    [74, RoomTypes.YELLOW],
+    [66, RoomTypes.PUZZLE]
+])
