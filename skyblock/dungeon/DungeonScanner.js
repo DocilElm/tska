@@ -76,7 +76,7 @@ export default new class DungeonScanner {
                 for (let cb of this._roomEnterListener) cb(this.rooms[idx])
             }
             this.lastIdx = idx
-            this.currentRoom = this.rooms[idx]
+            this.currentRoom = this.getRoomAt(Player.getX(), Player.getZ())
         }).unregister()
 
         Location.onWorldChange((world) => {
