@@ -4,7 +4,15 @@
  */
 export class SetArray {
     constructor(size = 16, loadFactor = 0.75) {
+        /**
+         * * The underlying `HashMap` that is used for this class
+         * @private
+         */
         this._hashMap = new HashMap(size || 16, loadFactor || 0.75)
+        /** @private */
+        this._dirty = true
+        /** @private */
+        this._cachedArray = this.toArray()
     }
 
     /**
@@ -27,6 +35,7 @@ export class SetArray {
         if (v == null) return
 
         this._hashMap.put(this.size(), v)
+        this._dirty = true
 
         return this
     }
@@ -42,6 +51,7 @@ export class SetArray {
         if (v == null) return
 
         this._hashMap.putIfAbsent(this.size(), v)
+        this._dirty = true
 
         return this
     }
@@ -56,6 +66,7 @@ export class SetArray {
         if (idx >= this.size()) return false
 
         this._hashMap.replace(idx, v)
+        this._cachedArray[idx] = v
 
         return true
     }
@@ -72,6 +83,7 @@ export class SetArray {
                 if (val !== v) continue
 
                 this._hashMap.remove(idx)
+                this._cachedArray.splice(idx, 1)
                 break
             }
             return true
@@ -98,19 +110,49 @@ export class SetArray {
         return this._hashMap.containsValue(v)
     }
 
+    /**
+     * - Gets the size of this list
+     * - Note: It will not count null values
+     * @returns {number}
+     */
     size() {
         return this._hashMap.size()
     }
 
+    /**
+     * - Clears all of the elements from this [SetArray]
+     * @returns {this} this for method chaining
+     */
     clear() {
         this._hashMap.clear()
+        this._cachedArray = []
 
         return this
     }
 
+    /**
+     * @param {(value: *, index: number)} cb
+     * @returns {this} this for method chaining
+     */
     forEach(cb) {
-        this._hashMap.forEach((k, v) => cb(v))
+        this._hashMap.forEach((k, v) => cb(v, k))
 
         return this
+    }
+
+    /**
+     * - Converts the elements inside of this [SetArray] into an array and returns it
+     * @returns {any[]}
+     */
+    toArray() {
+        if (!this._dirty) return this._cachedArray
+
+        this._cachedArray = []
+        this.forEach((v) => {
+            this._cachedArray.push(v)
+        })
+        this._dirty = false
+
+        return this._cachedArray
     }
 }
