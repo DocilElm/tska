@@ -9,6 +9,18 @@ export class MapArray {
          * @private
          */
         this._hashMap = new HashMap(size || 16, loadFactor || 0.75)
+        /** @private */
+        this._dirty = true
+        /** @private */
+        this._dirtyk = true
+        /** @private */
+        this._dirtyv = true
+        /** @private */
+        this._cachedObject = this.toObject()
+        /** @private */
+        this._cachedKeys = []
+        /** @private */
+        this._cachedValues = []
     }
 
     /**
@@ -33,6 +45,7 @@ export class MapArray {
         if (k == null) return
 
         this._hashMap.put(k, v)
+        this._dirty = this._dirtyk = this._dirtyv = true
 
         return this
     }
@@ -49,6 +62,7 @@ export class MapArray {
         if (k == null) return this
 
         this._hashMap.putIfAbsent(k, v)
+        this._dirty = this._dirtyk = this._dirtyv = true
 
         return this
     }
@@ -70,6 +84,8 @@ export class MapArray {
      */
     set(k, v) {
         this._hashMap.replace(k, v)
+        this._cachedObject[k] = v
+        this._dirtyk = this._dirtyv = true
         return this
     }
 
@@ -81,6 +97,8 @@ export class MapArray {
     remove(k) {
         if (this.has(k)) {
             this._hashMap.remove(k)
+            delete this._cachedObject[k]
+            this._dirtyk = this._dirtyv = true
             return true
         }
 
@@ -96,15 +114,67 @@ export class MapArray {
         return this.remove(k)
     }
 
+    /**
+     * - Clears all of the elements from this [MapArray]
+     * @returns {this} this for method chaining
+     */
     clear() {
         this._hashMap.clear()
+        this._cachedObject = {}
+        this._dirtyk = this._dirtyv = true
 
         return this
     }
 
+    /**
+     * @param {(key: *, value: *)} cb
+     * @returns {this} this for method chaining
+     */
     forEach(cb) {
         this._hashMap.forEach((k, v) => cb(k, v))
 
         return this
+    }
+
+    /**
+     * - Converts the elements inside of this [MapArray] into an object and returns it
+     * @returns {any}
+     */
+    toObject() {
+        if (!this._dirty) return this._cachedObject
+
+        this._cachedObject = {}
+        this.forEach((k, v) => {
+            this._cachedObject[k] = v
+        })
+        this._dirty = false
+
+        return this._cachedObject
+    }
+
+    /**
+     * - Converts the key elements of this [MapArray] into an array
+     * @returns {any[]}
+     */
+    getKeys() {
+        if (!this._dirtyk) return this._cachedKeys
+
+        this._cachedKeys = [...this._hashMap.keySet()]
+        this._dirtyk = false
+
+        return this._cachedKeys
+    }
+
+    /**
+     * - Converts the value elements of this [MapArray] into an array
+     * @returns {any[]}
+     */
+    getValues() {
+        if (!this._dirtyv) return this._cachedValues
+
+        this._cachedValues = [...this._hashMap.values()]
+        this._dirtyv = false
+
+        return this._cachedValues
     }
 }
