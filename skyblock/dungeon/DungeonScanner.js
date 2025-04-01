@@ -406,7 +406,7 @@ export default new class DungeonScanner {
             // Check player's rooms
             for (let v of this.players) {
                 let p = World.getPlayerByName(v.name)
-                let ping = p.getPing()
+                let ping = p?.getPing() || -1
                 // Since map (9th slot) doesn't update that frequently we can afford
                 // to "simulate" the way its updated with the `inRender` players as well
                 if (ticks !== 0 && ticks % 4 === 0 && p) {
