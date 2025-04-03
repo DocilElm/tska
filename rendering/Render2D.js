@@ -1,3 +1,4 @@
+import { ColorContainer } from "./Color"
 import { DGlStateManager } from "./DGlStateManager"
 
 const MCTessellator = Java.type("net.minecraft.client.renderer.Tessellator")./* getInstance */func_178181_a()
@@ -159,13 +160,13 @@ export class Render2D {
      * @param {number} top
      * @param {number} right
      * @param {number} bottom
-     * @param {number[]} startColor `RGBA` in `0` - `255`
-     * @param {number[]} endColor `RGBA` in `0` - `255`
+     * @param {number[]|ColorContainer} startColor `RGBA` in `0` - `255`
+     * @param {number[]|ColorContainer} endColor `RGBA` in `0` - `255`
      * @param {number} zlevel The z level to draw this rect at (`300` by default)
      */
     static drawGradientRect(left, top, right, bottom, startColor, endColor, zlevel = 300) {
-        const [ r1, g1, b1, a1 ] = [ startColor[0] / 255, startColor[1] / 255, startColor[2] / 255, startColor[3] / 255 ]
-        const [ r2, g2, b2, a2 ] = [ endColor[0] / 255, endColor[1] / 255, endColor[2] / 255, endColor[3] / 255 ]
+        const [ r1, g1, b1, a1 ] = ColorContainer.normal1(startColor)
+        const [ r2, g2, b2, a2 ] = ColorContainer.normal1(endColor)
 
         WorldRenderer./* begin */func_181668_a(7, /* POSITION_COLOR */ DefaultVertexFormats./* POSITION_COLOR */field_181706_f)
         WorldRenderer./* pos */func_181662_b(right, top, zlevel)./* color */func_181666_a(r1, g1, b1, a1)./* endVertex */func_181675_d()
@@ -181,8 +182,8 @@ export class Render2D {
      * @param {string|string[]} textLines The text lines to draw
      * @param {?number} mx The mouse x position
      * @param {?number} my The mouse y position
-     * @param {number[]} bgColor The background color (array of `0-255`)
-     * @param {number[]} borderColor The border color (array of `0-255`)
+     * @param {number[]|ColorContainer} bgColor The background color (array of `0-255`)
+     * @param {number[]|ColorContainer} borderColor The border color (array of `0-255`)
      * @param {number} zlevel The z level to draw this at (`300` by default)
      * @returns 
      */
@@ -253,6 +254,7 @@ export class Render2D {
 
         if (tooltipY + tooltipHeight + 6 > screenHeight) tooltipY = screenHeight - tooltipHeight - 6
 
+        borderColor = ColorContainer.normal255(borderColor)
         const borderColorEnd = [
             (borderColor[0] & 0xFE) >> 1,
             (borderColor[1] & 0xFE) >> 1,

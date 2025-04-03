@@ -1,7 +1,7 @@
 import { AxisAlignedBBUtils } from "../utils/AxisAlignedBBUtils"
+import { ColorContainer } from "./Color"
 import { DGlStateManager } from "./DGlStateManager"
 
-const RenderGlobal = Java.type("net.minecraft.client.renderer.RenderGlobal")
 const MCTessellator = Java.type("net.minecraft.client.renderer.Tessellator")./* getInstance */func_178181_a()
 const DefaultVertexFormats = Java.type("net.minecraft.client.renderer.vertex.DefaultVertexFormats")
 const WorldRenderer = MCTessellator./* getWorldRenderer */func_178180_c()
@@ -83,28 +83,51 @@ export class Render3D {
      * - Calls the [drawOutlinedBoundingBox] from minecraft's [RenderGlobal]
      * - NOTE: this does not setup anything in the stack, it directly calls the method.
      * @param {AxisAlignedBB} aabb
-     * @param {number} r Red (`0` - `255`)
-     * @param {number} g Green (`0` - `255`)
-     * @param {number} b Blue (`0` - `255`)
-     * @param {number} a Alpha (`0` - `255`)
+     * @param {number[]|ColorContainer} color `RGBA` in `0` - `255`
      * @returns
      */
-    static renderOutlinedBoundingBox(aabb, r, g, b, a) {
-        RenderGlobal./* drawOutlinedBoundingBox */func_181563_a(aabb, r, g, b, a)
+    static renderOutlinedBoundingBox(aabb, color) {
+        const [ x0, y0, z0, x1, y1, z1 ] = AxisAlignedBBUtils.getBounds(aabb)
+        ColorContainer.color1(color)
+
+        WorldRenderer./* begin */func_181668_a(3, DefaultVertexFormats./* POSITION */field_181705_e)
+        WorldRenderer./* pos */func_181662_b(x0, y0, z0)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x1, y0, z0)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x1, y0, z1)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x0, y0, z1)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x0, y0, z0)./* endVertex */func_181675_d()
+        MCTessellator./* draw */func_78381_a()
+        WorldRenderer./* begin */func_181668_a(3, DefaultVertexFormats./* POSITION */field_181705_e)
+        WorldRenderer./* pos */func_181662_b(x0, y1, z0)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x1, y1, z0)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x1, y1, z1)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x0, y1, z1)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x0, y1, z0)./* endVertex */func_181675_d()
+        MCTessellator./* draw */func_78381_a()
+        WorldRenderer./* begin */func_181668_a(1, DefaultVertexFormats./* POSITION */field_181705_e)
+        WorldRenderer./* pos */func_181662_b(x0, y0, z0)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x0, y1, z0)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x1, y0, z0)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x1, y1, z0)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x1, y0, z1)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x1, y1, z1)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x0, y0, z1)./* endVertex */func_181675_d()
+        WorldRenderer./* pos */func_181662_b(x0, y1, z1)./* endVertex */func_181675_d()
+        MCTessellator./* draw */func_78381_a()
     }
 
     /**
      * - Renders a filled box at the given [AxisAlignedBB]
      * - NOTE: this does not setup anything in the stack, it directly draws.
      * @param {AxisAlignedBB} aabb 
-     * @param {number} r Red (`0` - `255`)
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
      */
     static renderFilledBoundingBox(aabb, r, g, b, a) {
         const [ x0, y0, z0, x1, y1, z1 ] = AxisAlignedBBUtils.getBounds(aabb)
-        DGlStateManager.color(r / 255, g / 255, b / 255, a / 255)
+        ColorContainer.color1(r instanceof ColorContainer ? r : [r, g, b, a])
 
         WorldRenderer./* begin */func_181668_a(5, DefaultVertexFormats./* POSITION */field_181705_e)
         WorldRenderer./* pos */func_181662_b(x0, y0, z0)./* endVertex */func_181675_d()
@@ -133,7 +156,8 @@ export class Render3D {
 
     /**
      * - Renders an outlined box at the given [AxisAlignedBB] position
-     * @param {number} r Red (`0` - `255`)
+     * @param {AxisAlignedBB} aabb 
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -144,6 +168,12 @@ export class Render3D {
      */
     static renderOutlinedBox(aabb, r, g, b, a, phase = false, lineWidth = 3, translate = true, pticks) {
         if (!aabb) return
+        if (r instanceof ColorContainer) {
+            pticks = phase
+            translate = a
+            lineWidth = b
+            phase = g
+        }
 
         const [ realX, realY, realZ ] = Render3D.lerpViewEntity(pticks)
 
@@ -177,7 +207,8 @@ export class Render3D {
 
     /**
      * - Renders a filled box at the given [AxisAlignedBB] position
-     * @param {number} r Red (`0` - `255`)
+     * @param {AxisAlignedBB} aabb 
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -186,6 +217,12 @@ export class Render3D {
      * @param {number} pticks The partial ticks to use for this rendering, only matters if the rendering looks jittery
      */
     static renderFilledBox(aabb, r, g, b, a, phase = false, translate = true, pticks) {
+        if (r instanceof ColorContainer) {
+            pticks = a
+            translate = b
+            phase = g
+        }
+
         const [ realX, realY, realZ ] = Render3D.lerpViewEntity(pticks)
 
         DGlStateManager
@@ -221,7 +258,7 @@ export class Render3D {
      * @param {number} z Z axis
      * @param {number} w Width
      * @param {number} h Height
-     * @param {number} r Red (`0` - `255`)
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -232,6 +269,12 @@ export class Render3D {
      */
     static renderEntityBox(x, y, z, w, h, r, g, b, a, lineWidth = 3, phase = false, translate = true, pticks = null) {
         if (x == null) return
+        if (r instanceof ColorContainer) {
+            pticks = lineWidth
+            translate = a
+            phase = b
+            lineWidth = g
+        }
 
         const axis = AxisAlignedBBUtils.fromBounds(
             x - w / 2,
@@ -255,7 +298,7 @@ export class Render3D {
      * @param {number} z Z axis
      * @param {number} w Width
      * @param {number} h Height
-     * @param {number} r Red (`0` - `255`)
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -265,6 +308,11 @@ export class Render3D {
      */
     static renderEntityBoxFilled(x, y, z, w, h, r, g, b, a, phase = false, translate = true, pticks = null) {
         if (x == null) return
+        if (r instanceof ColorContainer) {
+            pticks = a
+            translate = b
+            phase = g
+        }
 
         const axis = AxisAlignedBBUtils.fromBounds(
             x - w / 2,
@@ -285,7 +333,7 @@ export class Render3D {
      * - Renders an outline like at the given [Block]
      * - This is (mostly) [Mojang]'s code
      * @param {Block} ctBlock
-     * @param {number} r Red (`0` - `255`)
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -297,6 +345,12 @@ export class Render3D {
      */
     static outlineBlock(ctBlock, r, g, b, a, phase = false, lineWidth = 3, translate = true, pticks) {
         if (!ctBlock) return
+        if (r instanceof ColorContainer) {
+            pticks = phase
+            translate = a
+            lineWidth = b
+            phase = g
+        }
 
         Render3D.renderOutlinedBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, lineWidth, translate, pticks)
     }
@@ -304,7 +358,7 @@ export class Render3D {
     /**
      * - Renders a filled block like at the given [Block]
      * @param {Block} ctBlock
-     * @param {number} r Red (`0` - `255`)
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -316,6 +370,11 @@ export class Render3D {
      */
     static filledBlock(ctBlock, r, g, b, a, phase = false, translate = true, pticks) {
         if (!ctBlock) return
+        if (r instanceof ColorContainer) {
+            pticks = a
+            translate = b
+            phase = g
+        }
 
         Render3D.renderFilledBox(AxisAlignedBBUtils.getBlockBounds(ctBlock), r, g, b, a, phase, translate, pticks)
     }
@@ -325,7 +384,7 @@ export class Render3D {
      * @param {number} x X axis
      * @param {number} y Y axis
      * @param {number} z Z axis
-     * @param {number} r Red (`0` - `255`)
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -335,6 +394,11 @@ export class Render3D {
      * @link From [NotEnoughUpdates](https://github.com/NotEnoughUpdates/NotEnoughUpdates/blob/master/src/main/java/io/github/moulberry/notenoughupdates/core/util/render/RenderUtils.java#L220)
      */
     static renderBeaconBeam(x, y, z, r, g, b, a, phase = false, height = 300, translate = true) {
+        if (r instanceof ColorContainer) {
+            translate = a
+            height = b
+            phase = g
+        }
         const [ realX, realY, realZ ] = Render3D.lerpViewEntity()
 
         DGlStateManager.pushMatrix()
@@ -342,10 +406,7 @@ export class Render3D {
         if (translate) DGlStateManager.translate(-realX, -realY, -realZ)
         if (phase) DGlStateManager.disableDepth()
 
-        r = r / 255
-        g = g / 255
-        b = b / 255
-        a = a / 255
+        const [r, g, b, a] = ColorContainer.normal1(r instanceof ColorContainer ? r : [r, g, b, a])
 
         Client.getMinecraft()./* getTextureManager */func_110434_K()./* bindTexture */func_110577_a(beaconBeam)
 
@@ -432,7 +493,7 @@ export class Render3D {
      * @param {number} x X axis
      * @param {number} y Y axis
      * @param {number} z Z axis
-     * @param {number} r Red (`0` - `255`)
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -440,18 +501,24 @@ export class Render3D {
      * @param {boolean} stringPhase Whether to render the text through walls or not (`true` by default)
      */
     static renderWaypoint(text, x, y, z, r, g, b, a, phase = true, stringPhase = true) {
+        if (r instanceof ColorContainer) {
+            stringPhase = b
+            phase = g
+        }
         const block = World.getBlockAt(x, y, z)
+        const color = ColorContainer.normal255(r instanceof ColorContainer ? r : [r, g, b, a])
+        const [r, g, b] = color
 
-        Render3D.outlineBlock(block, r, g, b, a, phase)
-        Render3D.filledBlock(block, r, g, b, 50, phase)
-        Render3D.renderBeaconBeam(x, y, z, r, g, b, a, phase)
+        Render3D.outlineBlock(block, color, phase)
+        Render3D.filledBlock(block, [r, g, b, 50], phase)
+        Render3D.renderBeaconBeam(x, y, z, color, phase)
         Render3D.renderString(text, x + 0.5, y + 5, z + 0.5, [0, 0, 0, 80], true, 1, true, true, stringPhase)
     }
 
     /**
      * - Renders a line through the given points
      * @param {number[][]} points The points in an array of arrays
-     * @param {number} r Red (`0` - `255`)
+     * @param {number|ColorContainer} r Red (`0` - `255`) or Color
      * @param {number} g Green (`0` - `255`)
      * @param {number} b Blue (`0` - `255`)
      * @param {number} a Alpha (`0` - `255`)
@@ -460,6 +527,11 @@ export class Render3D {
      * @param {boolean} translate Whether to translate the rendering coords to the [RenderViewEntity] coords (`true` by default)
      */
     static renderLines(points, r, g, b, a, phase = true, lineWidth = 3, translate = true) {
+        if (r instanceof ColorContainer) {
+            translate = a
+            lineWidth = b
+            phase = g
+        }
         const [ realX, realY, realZ ] = Render3D.lerpViewEntity()
 
         GL11.glLineWidth(lineWidth)
@@ -474,7 +546,7 @@ export class Render3D {
         if (translate) DGlStateManager.translate(-realX, -realY, -realZ)
         if (phase) DGlStateManager.disableDepth()
 
-        DGlStateManager.color(r / 255, g / 255, b / 255, a / 255)
+        ColorContainer.color1(r instanceof ColorContainer ? r : [r, g, b, a])
 
         WorldRenderer./* begin */func_181668_a(3, DefaultVertexFormats./* POSITION */field_181705_e)
         for (let it of points) {
@@ -504,7 +576,7 @@ export class Render3D {
      * @param {number} x The X axis
      * @param {number} y The Y axis
      * @param {number} z The Z axis
-     * @param {number[]} bgColor The background color (only works if `renderBackground` is enabled)
+     * @param {number[]|ColorContainer} bgColor The background color (only works if `renderBackground` is enabled)
      * @param {boolean} renderBackground Whether to draw a background in the text that is being rendered
      * @param {number} scale The scale (`1` by default)
      * @param {boolean} increase Whether to increase the box's size the close the player is to it (`true` by default)
@@ -567,20 +639,15 @@ export class Render3D {
         if (phase) DGlStateManager.disableDepth()
 
         if (renderBackground) {
-            const [ r, g, b, a ] = [
-                bgColor[0] / 255,
-                bgColor[1] / 255,
-                bgColor[2] / 255,
-                bgColor[3] / 255
-            ]
+            ColorContainer.color1(bgColor)
             const ww = totalWidth / 2
 
             DGlStateManager.disableTexture2D()
-            WorldRenderer./* begin */func_181668_a(7, DefaultVertexFormats./* POSITION_COLOR */field_181706_f)
-            WorldRenderer./* pos */func_181662_b(-ww - 1, -1 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
-            WorldRenderer./* pos */func_181662_b(-ww - 1, 10 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
-            WorldRenderer./* pos */func_181662_b(ww + 1, 10 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
-            WorldRenderer./* pos */func_181662_b(ww + 1, -1 * length, 0)./* color */func_181666_a(r, g, b, a)./* endVertex */func_181675_d()
+            WorldRenderer./* begin */func_181668_a(7, DefaultVertexFormats./* POSITION */field_181705_e)
+            WorldRenderer./* pos */func_181662_b(-ww - 1, -1 * length, 0)./* endVertex */func_181675_d()
+            WorldRenderer./* pos */func_181662_b(-ww - 1, 10 * length, 0)./* endVertex */func_181675_d()
+            WorldRenderer./* pos */func_181662_b(ww + 1, 10 * length, 0)./* endVertex */func_181675_d()
+            WorldRenderer./* pos */func_181662_b(ww + 1, -1 * length, 0)./* endVertex */func_181675_d()
             MCTessellator./* draw */func_78381_a()
             DGlStateManager.enableTexture2D()
         }
