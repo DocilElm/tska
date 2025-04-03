@@ -24,7 +24,7 @@ const channelRegex = /^((?:hypixel|hyevent):)/
 
 EventListener
     .createEvent(`${internalKey}:error`)
-    .createEvent(`${internalKey}:enviroment`)
+    .createEvent(`${internalKey}:environment`)
     .createEvent(`${internalKey}:pong`)
     .createEvent(`${internalKey}:partyinfo`)
     .createEvent(`${internalKey}:playerinfo`)
@@ -57,7 +57,7 @@ export default new class ModAPI {
             this.worldReg.unregister()
         }).unregister()
 
-        this.on("enviroment", () => {
+        this.on("environment", () => {
             this.worldReg.register()
         })
     }
@@ -81,7 +81,7 @@ export default new class ModAPI {
      * @private
      */
     _hello(packet) {
-        EventListener.post(`${internalKey}:enviroment`, apiEnvs[packet.readVarInt()])
+        EventListener.post(`${internalKey}:environment`, apiEnvs[packet.readVarInt()])
     }
 
     /**
@@ -165,7 +165,7 @@ export default new class ModAPI {
 
     /**
      * - Runs the specified listener whenever the specified event is triggered
-     * @param {"error"|"enviroment"|"pong"|"partyinfo"|"playerinfo"|"location"} eventName
+     * @param {"error"|"environment"|"pong"|"partyinfo"|"playerinfo"|"location"} eventName
      * @param {(args: ...any) => void} cb
      * @returns {this} this for method chaining
      */
@@ -177,7 +177,7 @@ export default new class ModAPI {
 
     /**
      * - Runs the specified listener only once whenever the specified event is triggered
-     * @param {"error"|"enviroment"|"pong"|"partyinfo"|"playerinfo"|"location"} eventName
+     * @param {"error"|"environment"|"pong"|"partyinfo"|"playerinfo"|"location"} eventName
      * @param {(args: ...any) => void} cb
      * @returns {this} this for method chaining
      */
@@ -189,7 +189,7 @@ export default new class ModAPI {
 
     /**
      * - Removes the listener from the specified event name list
-     * @param {"error"|"enviroment"|"pong"|"partyinfo"|"playerinfo"|"location"} eventName
+     * @param {"error"|"environment"|"pong"|"partyinfo"|"playerinfo"|"location"} eventName
      * @param {(args: ...any) => void} cb
      * @returns {boolean} Whether or not the listener was successfully deleted
      */
