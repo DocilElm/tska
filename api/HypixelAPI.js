@@ -124,7 +124,7 @@ export class HypixelAPI {
      * - Gets the player rank from specified hypixel data
      * - Note: The data has to be similar to the one returned by `getPlayer` function
      * @param {?any} data The hypixel data. If `data` is not passed through
-     * it will use the one cached or rather gathered by the previous `getPlayer(uuid)` call
+     * it will use the one cached or rather the one gathered by the previous `getPlayer(uuid)` call
      * @returns {string} The rank i.e. `&a[VIP&6+&a]`
      */
     getRank(data) {
