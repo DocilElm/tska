@@ -116,23 +116,24 @@ export default new class Dungeon {
         iconOrder = iconOrder.filter((it) => it?.className !== "DEAD")
         if (iconOrder.length < 1) return
 
-        // Copy the linked hashmap so that we avoid concurrent modification errors
-        let decorators = java.util.Collections.synchronizedMap(new (java.util.LinkedHashMap)(mapData./* mapDecorations */field_76203_h))
-        this.icons = {}
+        try {
+            const decorators = mapData./* mapDecorations */field_76203_h
+            this.icons = {}
 
-        decorators.forEach((iconName, vec4b) => {
-            const match = iconName.match(/^icon-(\d+)$/)
-            if (!match) return
+            decorators.forEach((iconName, vec4b) => {
+                const match = iconName.match(/^icon-(\d+)$/)
+                if (!match) return
 
-            const iconNumber = match[1] >> 0
-            const player = iconNumber < iconOrder.length ? iconOrder[iconNumber] : null
+                const iconNumber = match[1] >> 0
+                const player = iconNumber < iconOrder.length ? iconOrder[iconNumber] : null
 
-            this.icons[iconName] = {
-                x: vec4b.func_176112_b() + 128,
-                y: vec4b.func_176113_c() + 128,
-                rotation: (vec4b.func_176111_d() * 360) / 16 + 180,
-                player
-            }
-        })
+                this.icons[iconName] = {
+                    x: vec4b.func_176112_b() + 128,
+                    y: vec4b.func_176113_c() + 128,
+                    rotation: (vec4b.func_176111_d() * 360) / 16 + 180,
+                    player
+                }
+            })
+        } catch (ignore) {}
     }
 }
