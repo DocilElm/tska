@@ -1,4 +1,5 @@
 import InternalEvents from "../../event/InternalEvents"
+import Location from "../Location"
 
 // (Username, Class | DEAD | EMPTY, Level)
 const playerTabRegex = /^(?:[^\x00-\x7F])?(?:\[\d+\] )?(?:\[\w+\] )?(\w{1,16})(?: [^\x00-\x7F])? \((\w+ ([IVXLCDM]+)|EMPTY|DEAD)\)$/
@@ -8,8 +9,7 @@ const mapMaxY = net.minecraft.network.play.server.S34PacketMaps.class.getDeclare
 mapMaxX.setAccessible(true)
 mapMaxY.setAccessible(true)
 
-InternalEvents
-    .createEvent("mapdata")
+InternalEvents.createEvent("mapdata")
 
 export default new class Dungeon {
     constructor() {
@@ -57,6 +57,12 @@ export default new class Dungeon {
         }).setFilteredClass(net.minecraft.network.play.server.S34PacketMaps)
 
         InternalEvents.on("mapdata", (data) => this.updateMapIcons(data))
+
+        Location.onWorldChange((world) => {
+            if (world === "catacombs") return
+
+            this.reset()
+        })
     }
 
     /** @private */
