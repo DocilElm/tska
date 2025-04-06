@@ -72,9 +72,13 @@ export default new class Location {
 
                 if (!/^ (⏣|ф)/.test(unformatted)) return
 
-                this.subarea = unformatted.toLowerCase()
-                for (let cb of this._onSubarea)
-                    cb(this.subarea)
+                const newSubArea = unformatted.toLowerCase()
+                if (newSubArea !== this.subarea) {
+                    for (let cb of this._onSubarea)
+                        cb(newSubArea)
+                }
+
+                this.subarea = newSubArea
             }).setFilteredClass(net.minecraft.network.play.server.S3EPacketTeams)
         )
 
@@ -97,9 +101,13 @@ export default new class Location {
                     if (!/^Area|Dungeon: [\w ]+$/.test(unformatted)) return
                     if (action !== S38PacketPlayerListItem.Action.ADD_PLAYER) return
 
-                    this.area = unformatted.toLowerCase().replace(/(area|dungeon): /, "")
-                    for (let cb of this._onArea)
-                        cb(this.area)
+                    const newArea = unformatted.toLowerCase().replace(/(area|dungeon): /, "")
+
+                    if (newArea !== this.area) {
+                        for (let cb of this._onArea)
+                            cb(newArea)
+                    }
+                    this.area = newArea
                 })
             }).setFilteredClass(S38PacketPlayerListItem)
         )
@@ -107,6 +115,9 @@ export default new class Location {
         // Reset both variables
         this.registers.push(
             register("worldUnload", () => {
+                // Don't trigger more than once
+                if (!this.area && !this.subarea) return
+
                 this.area = null
                 this.subarea = null
 
