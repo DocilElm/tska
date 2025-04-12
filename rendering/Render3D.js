@@ -528,7 +528,10 @@ export class Render3D {
     ) {
         if (text == null || x == null) return
         // Backwards compatibility should deprecate soon
-        if (typeof pticks === "boolean") phase = pticks
+        if (typeof pticks === "boolean") {
+            phase = pticks
+            pticks = null
+        }
 
         let length = 1
         let isArray = false
