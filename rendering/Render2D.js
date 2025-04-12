@@ -196,9 +196,7 @@ export class Render2D {
 
         DGlStateManager.disableRescaleNormal()
         MCRenderHelper./* disableStandardItemLighting */func_74518_a()
-        DGlStateManager
-            .disableLighting()
-            .disableDepth()
+        DGlStateManager.disableLighting()
 
         let tooltipWidth = 0
         for (let str of textLines) {
@@ -286,6 +284,7 @@ export class Render2D {
             .disableBlend()
             .enableAlpha()
             .enableTexture2D()
+            .disableDepth()
 
         // drawing text
         for (let i = 0; i < textLines.length; i++) {
@@ -295,7 +294,7 @@ export class Render2D {
             tooltipY += 10
         }
 
-        MCRenderItem./* zLevel */field_77023_b = zlevel
+        MCRenderItem./* zLevel */field_77023_b = 0
 
         DGlStateManager
             .enableLighting()
