@@ -22,6 +22,8 @@ export class CommandHandler {
         this.commandFormat = "&a- ${name} &b${description}"
         /** @private */
         this.aliasFormat = "\n    &6- ${name}"
+        /** @private */
+        this.errorFormat = "&cCould not find command ${arg} in &b${name}'s &ccommand list"
 
         // Adding the "help" command since we are the ones supposed to handle that
         this.push("help", "Shows this list", () => {
@@ -90,6 +92,21 @@ export class CommandHandler {
     }
 
     /**
+     * - Sets the `errorFormat` for this command handler
+     * - `errorFormat` here refers to the error that is displayed whenever a command/subcommand is not found
+     * - The default format is `"&cCould not find command ${arg} in &b${name}'s &ccommand list"`
+     * @param {string} format The format has to look something like this `"&cCould not find command ${arg} in &b${name}'s &ccommand list"`
+     * where `${arg}` tells this command handler where the arguments that the player passed through should be at
+     * and `${name}` where the module name should be at
+     * @returns {this} this for method chaining
+     */
+    setErrorFormat(format) {
+        this.errorFormat = format
+
+        return this
+    }
+
+    /**
      * - Sets the main command name
      * - Note: The command register is created here
      * @param {string} name The command name
@@ -122,7 +139,7 @@ export class CommandHandler {
                     }
                 }
             }
-            if (!obj) return ChatLib.chat(`&cCould not find command \"${arg}\" in &b${this.moduleName}'s &ccommand list`)
+            if (!obj) return ChatLib.chat(this.errorFormat.replace("${arg}", arg).replace("${name}", this.moduleName))
 
             obj.cb?.call(null, ...args.splice(1))
         })
@@ -150,6 +167,8 @@ export class CommandHandler {
      * @returns {this} this for method chaining
      */
     push(command, description, cb) {
+        if (typeof description !== "string") throw `[tska - CommandHandler] ${description} is not a valid description`
+
         this.commands[command] = {
             description, cb, aliases: []
         }
@@ -171,6 +190,8 @@ export class CommandHandler {
      * @returns {this} this for method chaining
      */
     pushWithAlias(command, aliases = [], description, cb) {
+        if (typeof description !== "string") throw `[tska - CommandHandler] ${description} is not a valid description`
+
         this.commands[command] = {
             description, cb, aliases
         }
