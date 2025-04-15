@@ -21,6 +21,7 @@ const channelVersions = {
     "hypixel:register": 1
 }
 const channelRegex = /^((?:hypixel|hyevent):)/
+const allowedChannels = new Set(["hello", "ping", "party_info", "player_info", "location"])
 
 EventListener
     .createEvent(`${internalKey}:error`)
@@ -45,7 +46,9 @@ export default new class ModAPI {
             const reader = new S3FPacketReader(packet)
             try {
                 if (channelRegex.test(reader.getChannelName())) {
-                    this[`_${reader.getChannelName().replace(channelRegex, "")}`](reader)
+                    const channel = reader.getChannelName().replace(channelRegex, "")
+                    if (!allowedChannels.has(channel)) return
+                    this[`_${channel}`](reader)
                 }
             } finally {
                 reader.release()
@@ -104,7 +107,7 @@ export default new class ModAPI {
         const inParty = packet.readBoolean()
         const partyMembers = {}
 
-        if (partyMembers) {
+        if (inParty) {
             const count = packet.readVarInt()
 
             for (let idx = 0; idx < count; idx++) {
