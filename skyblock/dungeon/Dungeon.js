@@ -2,7 +2,7 @@ import InternalEvents from "../../event/InternalEvents"
 import Location from "../Location"
 
 // (Username, Class | DEAD | EMPTY, Level)
-const playerTabRegex = /^(?:[^\x00-\x7F])?(?:\[\d+\] )?(?:\[\w+\] )?(\w{1,16})(?: [^\x00-\x7F])? \((\w+ ([IVXLCDM]+)|EMPTY|DEAD)\)$/
+const playerTabRegex = /^(?:[^\x00-\x7F])?(?:\[\d+\] )?(?:\[\w+\] )?(\w{1,16})(?: [^\x00-\x7F]+)? \((\w+ ([IVXLCDM]+)|EMPTY|DEAD)\)$/
 const ItemMap = net.minecraft.item.ItemMap
 const mapMaxX = net.minecraft.network.play.server.S34PacketMaps.class.getDeclaredField(/* mapMaxX */"field_179735_f")
 const mapMaxY = net.minecraft.network.play.server.S34PacketMaps.class.getDeclaredField(/* mapMaxY */"field_179736_g")
