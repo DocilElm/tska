@@ -1,4 +1,4 @@
-const S38PacketPlayerListItem = net.minecraft.network.play.server.S38PacketPlayerListItem
+import InternalEvents from "../event/InternalEvents"
 
 /**
  * - Class with utilities for the location of the player in skyblock
@@ -26,91 +26,30 @@ export default new class Location {
         this.registers.push(register("gameUnload", () => {
             this._unregister()
         }))
-        // Getting world/area data on `/ct load`
-        // trigger the corresponding listeners
-        this.registers.push(
-            register("gameLoad", () => {
-                if (!World.isLoaded()) return
 
-                // Getting the area
-                Scoreboard.getLines()
-                    ?.map(line => line?.getName()?.removeFormatting()?.replace(/[^\u0000-\u007F]/g, ""))
-                    ?.forEach(it => {
-                        const match = it?.match(/^  (\w.+)$/)?.[1]
-                        if (!match) return
+        InternalEvents
+            .on("scoreboard", (name) => {
+                if (!/^ (⏣|ф)/.test(name)) return
 
-                        this.subarea = match.toLowerCase()
-                        for (let cb of this._onSubarea)
-                            cb(this.subarea)
-                    })
-
-                // Getting the world
-                TabList.getNames()
-                    ?.forEach(it => {
-                        const match = it?.removeFormatting()?.match(/^(Area|Dungeon): ([\w\d ]+)$/)?.[2]
-                        if (!match) return
-
-                        this.area = match.toLowerCase().replace(/(area|dungeon): /, "")
-                        for (let cb of this._onArea)
-                            cb(this.area)
-                    })
-            })
-        )
-
-        // Getting scoreboard subarea
-        this.registers.push(
-            register("packetReceived", (packet) => {
-                const channel = packet./* getAction */func_149307_h()
-                if (channel !== 2) return
-
-                const teamStr = packet./* getName */func_149312_c()
-                const teamMatch = teamStr.match(/^team_(\d+)$/)
-                if (!teamMatch) return
-
-                const formatted = packet./* getPrefix */func_149311_e().concat(packet./* getSuffix */func_149309_f())
-                const unformatted = formatted.removeFormatting()
-
-                if (!/^ (⏣|ф)/.test(unformatted)) return
-
-                const newSubArea = unformatted.toLowerCase()
+                const newSubArea = name.toLowerCase()
                 if (newSubArea !== this.subarea) {
                     for (let cb of this._onSubarea)
                         cb(newSubArea)
                 }
 
                 this.subarea = newSubArea
-            }).setFilteredClass(net.minecraft.network.play.server.S3EPacketTeams)
-        )
+            })
+            .on("tabadd", (name) => {
+                if (!/^Area|Dungeon: [\w ]+$/.test(name)) return
 
-        // Getting tablist area
-        this.registers.push(
-            register("packetReceived", (packet) => {
-                const players = packet./* getEntries */func_179767_a()
-                const action = packet./* getAction */func_179768_b()
+                const newArea = name.toLowerCase().replace(/(area|dungeon): /, "")
 
-                if (action !== S38PacketPlayerListItem.Action.ADD_PLAYER) return
-
-                players.forEach(addPlayerData => {
-                    const name = addPlayerData./* getDisplayName */func_179961_d()
-
-                    if (!name) return
-
-                    const formatted = name./* getFormattedText */func_150254_d()
-                    const unformatted = formatted.removeFormatting()
-
-                    if (!/^Area|Dungeon: [\w ]+$/.test(unformatted)) return
-                    if (action !== S38PacketPlayerListItem.Action.ADD_PLAYER) return
-
-                    const newArea = unformatted.toLowerCase().replace(/(area|dungeon): /, "")
-
-                    if (newArea !== this.area) {
-                        for (let cb of this._onArea)
-                            cb(newArea)
-                    }
-                    this.area = newArea
-                })
-            }).setFilteredClass(S38PacketPlayerListItem)
-        )
+                if (newArea !== this.area) {
+                    for (let cb of this._onArea)
+                        cb(newArea)
+                }
+                this.area = newArea
+            })
 
         // Reset both variables
         this.registers.push(
