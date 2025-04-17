@@ -56,7 +56,7 @@ const data = new LocalStore("tska", {
 register("gameUnload", () => {
     for (let local of cachedInstances)
         local.save()
-})
+}).setPriority(Priority.LOWEST)
 
 register("tick", () => {
     if (!World.isLoaded()) return
