@@ -68,7 +68,7 @@ export default new class ModAPI {
     /** @private */
     _handleBase(packet) {
         if (!packet.readBoolean()) {
-            EventListener.post(`${internalKey}:error`, apiErrors[packet.readVarInt() + 1])
+            EventListener.post(`${internalKey}:error`, apiErrors[packet.readVarInt() - 1])
             return
         }
 
