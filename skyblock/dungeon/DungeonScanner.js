@@ -321,6 +321,23 @@ export default new class DungeonScanner {
         return 6 * comp[1] + comp[0]
     }
 
+    /**
+     * - Gets the rooms that are currently explored in the dungeon
+     * @returns {Room[]}
+     */
+    getExploredRooms() {
+        let explored = []
+
+        for (let room of this.rooms) {
+            if (!room || !room.explored) continue
+            if (explored.indexOf(room) !== -1) continue
+
+            explored.push(room)
+        }
+
+        return explored
+    }
+
     /** @private */
     addDoor(door) {
         const idx = this.getDoorIdx(door.getComp())
