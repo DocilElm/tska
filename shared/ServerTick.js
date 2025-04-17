@@ -54,8 +54,8 @@ register("packetReceived", (packet) => {
         if (lastTicks.length > 5) lastTicks.shift()
     }
 
-    for (let idx = 0; idx < _onServerTick.length; idx++) {
-        _onServerTick[idx]()
+    for (let listener of _onServerTick) {
+        listener()
     }
 
     for (let idx = _scheduleTaskList.length - 1; idx >= 0; idx--) {
