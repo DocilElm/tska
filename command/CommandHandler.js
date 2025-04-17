@@ -15,6 +15,8 @@ export class CommandHandler {
         this.commandNames = []
         /** @private */
         this.mainCommand = null
+        /** @private */
+        this._register = null
         
         /** @private */
         this.titleFormat = "&8[&b${name}&8] &aCommand List"
@@ -118,7 +120,7 @@ export class CommandHandler {
     setName(name, cb) {
         this.mainCommand = name
 
-        register("command", (...args) => {
+        this._register = register("command", (...args) => {
             // If the user's callback function returns 1 that means we can cancel our custom handling
             if (cb?.call(null, ...args) === 1) return
 
@@ -199,6 +201,30 @@ export class CommandHandler {
         this.commandNames.push(command.toLowerCase())
         for (let alias of aliases)
             this.commandNames.push(alias.toLowerCase())
+
+        return this
+    }
+
+    /**
+     * - Sets an alias for this command
+     * @param {string} name
+     * @returns {this} this for method chaining
+     */
+    setAlias(name) {
+        if (!this._register) throw "[tska - CommandHandler] seems like you did not call setName() before-hand"
+        this._register.setAliases(name)
+
+        return this
+    }
+
+    /**
+     * - Sets an alias for this command
+     * @param {string[]} args
+     * @returns {this} this for method chaining
+     */
+    setAliases(...args) {
+        if (!this._register) throw "[tska - CommandHandler] seems like you did not call setName() before-hand"
+        this._register.setAliases(args)
 
         return this
     }
