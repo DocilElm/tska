@@ -2,6 +2,13 @@ import Location from "../skyblock/Location"
 import { Event } from "./Event"
 
 export class Feature {
+    /**
+     * - Class that handles event based utilities
+     * - For example waiting for the proper world to be loaded in order
+     * - to register the event/subevents
+     * @param {?string|string[]} area The required area for this Feature (if left empty it will not check)
+     * @param {?string|string[]} subarea The required subarea for this Feature (if left empty it will not check)
+     */
     constructor(area = null, subarea = null) {
         /** @private */
         this.isAreaArray = Array.isArray(area)
