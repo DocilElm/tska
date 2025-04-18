@@ -54,7 +54,7 @@ export class HudManager {
 
     /** @private */
     _onDragged(dx, dy, mbtn) {
-        if (!Client.isInGui() || !this.gui.isOpen() || mbtn !== 0 || !this._selectedHud) return
+        if (!this.gui.isOpen() || mbtn !== 0 || !this._selectedHud) return
 
         this._selectedHud._onDragged(dx, dy)
     }
@@ -216,7 +216,8 @@ export class HudManager {
 }
 
 register("dragged", (dx, dy, _, __, mbtn) => {
-    for (let manager of hudManagers) manager._onDragged(dx, dy, mbtn)
+    if (Client.isInGui())
+        for (let manager of hudManagers) manager._onDragged(dx, dy, mbtn)
 })
 
 register("gameUnload", () => {
