@@ -12,7 +12,7 @@ export class Event {
      * @returns {this} this for method chaining
      */
     static createEvent(eventName, cb) {
-        customEvents.set(eventName, cb)
+        customEvents.set(eventName.toLowerCase(), cb)
 
         return this
     }
@@ -26,7 +26,7 @@ export class Event {
         this.args = args
 
         /** @private */
-        this.isCustom = customEvents.get(eventName)
+        this.isCustom = customEvents.get(eventName.toLowerCase())
         /** @private */
         this.isArray = Array.isArray(this.isCustom)
 
