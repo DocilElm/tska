@@ -22,7 +22,6 @@ export class FeatureManager {
 
                 if (!feat.configValue) return feat._unregister()
 
-                feat.onAreaChange(Location.area)
                 feat.onSubareaChange(Location.subarea)
             }
         })
