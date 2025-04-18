@@ -10,8 +10,9 @@ export class FeatureManager {
      * @param {import("../../Amaterasu/core/Settings").default} config The Amaterasu settings instance i.e. `config.getConfig()`
      */
     constructor(config) {
+        /** @private */
         this.config = config
-        /** @type {Feature[]} */
+        /** @type {Feature[]} @private */
         this.features = []
 
         this.config.registerListener((_, v, configName) => {
@@ -57,5 +58,32 @@ export class FeatureManager {
         this.features.push(feat)
 
         return feat
+    }
+
+    /**
+     * - Calls `register` to all the features at once
+     * - Note: This checks whether the config value is enabled or not,
+     * it DOES NOT check for world.
+     * @returns {this} this for method chaining
+     */
+    register() {
+        for (let feat of this.features) {
+            if (!feat.configValue) continue
+            feat._register()
+        }
+
+        return this
+    }
+
+    /**
+     * - Calls `unregister` to all the features at once without any checking.
+     * @returns {this} this for method chaining
+     */
+    unregister() {
+        for (let feat of this.features) {
+            feat._unregister()
+        }
+
+        return this
     }
 }
