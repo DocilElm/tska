@@ -14,7 +14,7 @@ export class Feature {
         this.isAreaArray = Array.isArray(area)
         /** @private */
         this.isSubareaArray = Array.isArray(subarea)
-        
+
         /** @private */
         this.area = this.isAreaArray
             ? area.map((it) => it.toLowerCase().removeFormatting())

@@ -29,6 +29,11 @@ export class FeatureManager {
 
         Location.onWorldChange((areaName) => {
             for (let feat of this.features) {
+                if (feat.noConfig) {
+                    feat.onAreaChange(areaName)
+                    continue
+                }
+
                 if (!feat.configValue) continue
                 feat.onAreaChange(areaName)
             }
@@ -36,6 +41,11 @@ export class FeatureManager {
 
         Location.onAreaChange((subareaName) => {
             for (let feat of this.features) {
+                if (feat.noConfig) {
+                    feat.onSubareaChange(subareaName)
+                    continue
+                }
+
                 if (!feat.configValue) continue
                 feat.onSubareaChange(subareaName)
             }
@@ -45,8 +55,8 @@ export class FeatureManager {
     /**
      * - Creates a new Feature with the specified required [area] and/or [subarea]
      * @param {string} configName
-     * @param {?string} area
-     * @param {?string} subarea
+     * @param {?string|string[]} area
+     * @param {?string|string[]} subarea
      * @returns {Feature}
      */
     createFeature(configName, area, subarea) {
@@ -54,6 +64,22 @@ export class FeatureManager {
         // Inject important data into the obj class
         feat.configName = configName
         feat.configValue = this.config.settings[configName]
+
+        this.features.push(feat)
+
+        return feat
+    }
+
+    /**
+     * - Creates a new Feature with the specified required [area] and/or [subarea]
+     * - This however does not check for config
+     * @param {?string|string[]} area
+     * @param {?string|string[]} subarea
+     * @returns {Feature}
+     */
+    createFeatureNo(area, subarea) {
+        const feat = new Feature(area, subarea)
+        feat.noConfig = true
 
         this.features.push(feat)
 
