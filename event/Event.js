@@ -9,12 +9,9 @@ export class Event {
      * - The callback MUST return a register
      * @param {string} eventName
      * @param {(...args) => any} cb
-     * @returns {this} this for method chaining
      */
     static createEvent(eventName, cb) {
         customEvents.set(eventName.toLowerCase(), cb)
-
-        return this
     }
 
     constructor(eventName, cb, ...args) {
@@ -33,7 +30,7 @@ export class Event {
         /** @private */
         this.hasRegistered = false
         /** @private */
-        this._register = this.isCustom?.(cb, ...args) ?? register(eventName, cb)
+        this._register = this.isCustom?.(cb, ...args).unregister() ?? register(eventName, cb).unregister()
     }
 
     /**
@@ -88,3 +85,6 @@ export class Event {
         return this.hasRegistered
     }
 }
+
+// Shh don't tell anyone about this
+import "./CustomEvents"
