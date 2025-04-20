@@ -182,6 +182,24 @@ Event.createEvent("serverBlockChange", (cb) => {
 
 Event.createEvent("serverMultiBlockChange", (cb) => register("packetReceived", (packet) => cb(packet./* getChangedBlocks */func_179844_a())).setFilteredClass(net.minecraft.network.play.server.S22PacketMultiBlockChange))
 
+Event.createEvent("serverSetSlot", (cb) => {
+    return register("packetReceived", (packet) => {
+        const windowId = packet.func_149175_c()
+        const slotId = packet.func_149173_d()
+        const itemStack = packet.func_149174_e()
+
+        cb(slotId, itemStack, windowId)
+    }).setFilteredClass(net.minecraft.network.play.server.S2FPacketSetSlot)
+})
+
+Event.createEvent("forgeEntityJoin", (cb, clazz) => {
+    return register(net.minecraftforge.event.entity.EntityJoinWorldEvent, (event) => {
+        if (clazz && !(event.entity instanceof clazz)) return
+
+        cb(event.entity, event.entity./* getEntityId */func_145782_y(), event)
+    })
+})
+
 Event.createEvent("customBlockChange", (cb) => {
     return register("packetReceived", (packet) => {
         const blockPos = packet./* getBlockPosition */func_179827_b()
@@ -194,4 +212,69 @@ Event.createEvent("customBlockChange", (cb) => {
 
         cb(new Block(new BlockType(block), new BlockPos(pos[0], pos[1], pos[2]), null), pos, block)
     }).setFilteredClass(net.minecraft.network.play.server.S23PacketBlockChange)
+})
+
+Event.createEvent("customOpenedChest", (cb) => {
+    let time = null
+
+    return [
+        register("packetSent", (packet) => {
+            const position = packet./* getPosition */func_179724_a()
+
+            const [ x, y, z ] = [
+                position./* getX */func_177958_n(),
+                position./* getY */func_177956_o(),
+                position./* getZ */func_177952_p()
+            ]
+            const ctBlock = World.getBlockAt(x, y, z)
+            if (!(ctBlock.type.mcBlock instanceof net.minecraft.block.BlockChest)) return
+
+            time = Date.now()
+        }).setFilteredClass(net.minecraft.network.play.client.C08PacketPlayerBlockPlacement),
+
+        register("packetReceived", (packet) => {
+            if (!time || time && Date.now() - time > 300) return
+
+            const block = packet./* getBlockType */func_148868_c()
+            if (!(block instanceof net.minecraft.block.BlockChest)) return
+
+            cb(time)
+            time = null
+        }).setFilteredClass(net.minecraft.network.play.server.S24PacketBlockAction)
+    ]
+})
+
+Event.createEvent("clientBlockPlace", (cb) => {
+    return register("packetSent", (packet) => {
+        const position = packet./* getPosition */func_179724_a()
+
+        const pos = [
+            position./* getX */func_177958_n(),
+            position./* getY */func_177956_o(),
+            position./* getZ */func_177952_p()
+        ]
+        const ctBlock = World.getBlockAt(pos[0], pos[1], pos[2])
+
+        cb(ctBlock, pos, position)
+    }).setFilteredClass(net.minecraft.network.play.client.C08PacketPlayerBlockPlacement)
+})
+
+Event.createEvent("clientWindowClick", (cb) => {
+    return register("packetSent", (packet) => {
+        cb(Player.getContainer().getName(), packet./* getSlotId */func_149544_d())
+    }).setFilteredClass(net.minecraft.network.play.client.C0EPacketClickWindo)
+})
+
+Event.createEvent("clientPlayerDigging", (cb) => {
+    return register("packetSent", (packet, event) => {
+        cb(packet./* getStatus */func_180762_c()?.toString(), event)
+    }).setFilteredClass(net.minecraft.network.play.client.C07PacketPlayerDigging)
+})
+
+Event.createEvent("clientWindowClose", (cb) => register("packetSent", () => cb()).setFilteredClass(net.minecraft.network.play.client.C0DPacketCloseWindow))
+
+Event.createEvent("clientHeldItemChange", (cb) => {
+    return register("packetSent", (packet) => {
+        cb(packet./* getSlotId */func_149614_c())
+    }).setFilteredClass(net.minecraft.network.play.client.C09PacketHeldItemChange)
 })
