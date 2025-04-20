@@ -30,7 +30,11 @@ export class Event {
         /** @private */
         this.hasRegistered = false
         /** @private */
-        this._register = this.isCustom?.(cb, ...args).unregister() ?? register(eventName, cb).unregister()
+        this._register = this.isCustom
+            ? this.isArray
+                ? this.isCustom.forEach((it) => it(cb, ...args).unregister())
+                : this.isCustom(cb, ...args)
+            : register(eventName, cb).unregister()
     }
 
     /**
