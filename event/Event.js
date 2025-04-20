@@ -24,17 +24,19 @@ export class Event {
 
         /** @private */
         this.isCustom = customEvents.get(eventName.toLowerCase())
-        /** @private */
-        this.isArray = Array.isArray(this.isCustom)
 
         /** @private */
         this.hasRegistered = false
         /** @private */
-        this._register = this.isCustom
+        this._register = this.isCustom?.(cb, ...args || []) || register(eventName, cb)
+        /** @private */
+        this.isArray = Array.isArray(this._register)
+
+        this.isCustom
             ? this.isArray
-                ? this.isCustom.forEach((it) => it(cb, ...args).unregister())
-                : this.isCustom(cb, ...args)
-            : register(eventName, cb).unregister()
+                ? this._register.forEach((it) => it.unregister())
+                : this._register.unregister()
+            : this._register.unregister()
     }
 
     /**
