@@ -28,7 +28,7 @@ export class Event {
         /** @private */
         this.hasRegistered = false
         /** @private */
-        this._register = this.isCustom?.(cb, ...args || []) || register(eventName, cb)
+        this._register = this.isCustom?.(cb, ...(args || [])) || register(eventName, cb)
         /** @private */
         this.isArray = Array.isArray(this._register)
 
