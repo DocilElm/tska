@@ -1,5 +1,3 @@
-import { Event } from "../event/Event"
-
 let _onServerTick = []
 let _scheduleTaskList = []
 
@@ -69,11 +67,3 @@ register("packetReceived", (packet) => {
         _scheduleTaskList.splice(idx, 1)
     }
 }).setFilteredClass(net.minecraft.network.play.server.S32PacketConfirmTransaction)
-
-Event.createEvent("servertick", (cb) => {
-    return register("packetReceived", (packet) => {
-        if (packet./* getActionNumber */func_148890_d() > 0) return
-
-        cb()
-    }).setFilteredClass(net.minecraft.network.play.server.S32PacketConfirmTransaction).unregister()
-})
