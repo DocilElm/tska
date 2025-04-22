@@ -33,6 +33,8 @@ export class Feature {
         this._onRegister = []
         /** @private */
         this._onUnregister = []
+        /** @private */
+        this._dirty = false
     }
 
     /**
@@ -43,8 +45,8 @@ export class Feature {
      * @returns {boolean}
      */
     _checkArea(areaName) {
-        if (!areaName) return false
         if (!this.area) return true
+        if (!areaName) return false
 
         if (this.isAreaArray) return this.area.some((it) => it === areaName)
 
@@ -59,8 +61,8 @@ export class Feature {
      * @returns {boolean}
      */
     _checkSubarea(subareaName) {
-        if (!subareaName) return false
         if (!this.subarea) return true
+        if (!subareaName) return false
 
         if (this.isSubareaArray) return this.subarea.some((it) => subareaName.includes(it))
 
@@ -76,6 +78,11 @@ export class Feature {
      */
     _register() {
         if (this.hasRegistered) return this
+        if (!this.events.length) {
+            // Schedule this action to the next time there's an actual event
+            this._dirty = true
+            return this
+        }
 
         for (let event of this.events) event.register()
         for (let listener of this._onRegister) listener?.()
@@ -114,6 +121,10 @@ export class Feature {
      */
     register(eventName, cb, ...args) {
         this.events.push(new Event(eventName, cb, ...args).unregister())
+        if (this._dirty) {
+            this._register()
+            this._dirty = false
+        }
 
         return this
     }
