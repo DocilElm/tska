@@ -34,7 +34,7 @@ export class Feature {
         /** @private */
         this._onUnregister = []
         /** @private */
-        this._dirty = false
+        this._dirty = null
     }
 
     /**
@@ -80,7 +80,7 @@ export class Feature {
         if (this.hasRegistered) return this
         if (!this.events.length) {
             // Schedule this action to the next time there's an actual event
-            this._dirty = true
+            this._dirty = Date.now()
             return this
         }
 
@@ -112,6 +112,25 @@ export class Feature {
     }
 
     /**
+     * - Checks whether this [Feature]'s events should be scheduled for register or not
+     * - This is mostly useful on first load check because [Feature] doesn't know
+     * when you're done adding events so instead it does a `50ms` check because
+     * you should be chaining your events
+     * @private
+     * @returns
+     */
+    _checkSchedule() {
+        if (this.hasRegistered && Date.now() - this._dirty < 50) this._dirty = Date.now()
+        if (this._dirty && Date.now() - this._dirty < 100) {
+            this._unregister()
+            this.onSubareaChange(Location.subarea)
+            return
+        }
+
+        this._dirty = null
+    }
+
+    /**
      * - Adds an event to this Feature with the specified
      * [eventName] [args] and [callback] function
      * @param {string} eventName
@@ -121,10 +140,7 @@ export class Feature {
      */
     register(eventName, cb, ...args) {
         this.events.push(new Event(eventName, cb, ...args).unregister())
-        if (this._dirty) {
-            this.onSubareaChange(Location.subarea)
-            this._dirty = false
-        }
+        this._checkSchedule()
 
         return this
     }
@@ -142,10 +158,7 @@ export class Feature {
      */
     registersub(eventName, cb, registerWhen, ...args) {
         this.subevents.push([new Event(eventName, cb, ...args).unregister(), registerWhen])
-        if (this._dirty) {
-            this.onSubareaChange(Location.subarea)
-            this._dirty = false
-        }
+        this._checkSchedule()
 
         return this
     }
