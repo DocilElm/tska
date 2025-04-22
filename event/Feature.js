@@ -122,7 +122,7 @@ export class Feature {
     register(eventName, cb, ...args) {
         this.events.push(new Event(eventName, cb, ...args).unregister())
         if (this._dirty) {
-            this._register()
+            this.onSubareaChange(Location.subarea)
             this._dirty = false
         }
 
@@ -142,6 +142,10 @@ export class Feature {
      */
     registersub(eventName, cb, registerWhen, ...args) {
         this.subevents.push([new Event(eventName, cb, ...args).unregister(), registerWhen])
+        if (this._dirty) {
+            this.onSubareaChange(Location.subarea)
+            this._dirty = false
+        }
 
         return this
     }
