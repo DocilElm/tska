@@ -108,7 +108,7 @@ export default new class InternalEvent {
     
     /** @private */
     unregister() {
-        for (let event of events)
+        for (let event of this.events)
             event.unregister()
     }
 
