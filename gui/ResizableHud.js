@@ -7,12 +7,6 @@ export class ResizableHud extends Hud {
         this.resizeStep = 1
     }
 
-    /** @private */
-    _triggerDraw(x, y) {
-        this.onDraw?.(this.x, this.y, this.width, this.height)
-        super._triggerDraw(x, y)
-    }
-
     /**
      * - Sets the [resizedStep] of this [Hud]
      * - Default is `1`

@@ -178,6 +178,7 @@ export class Hud {
     /** @override */
     _triggerDraw(x, y) {
         this._hovering = this.inBounds(x, y)
+        this._onDraw?.(this.x, this.y, this.width, this.height)
     }
 
     /** @override */
@@ -194,5 +195,10 @@ export class Hud {
     _onDragged(dx, dy) {
         this.x = Math.max(0, Math.min(this.x + dx, Renderer.screen.getWidth() - (this.width * this.scale)))
         this.y = Math.max(0, Math.min(this.y + dy, Renderer.screen.getHeight() - (this.height * this.scale)))
+    }
+
+    /** @private */
+    _onHover(x, y) {
+        this._hovering = this.inBounds(x, y)
     }
 }

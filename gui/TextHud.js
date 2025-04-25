@@ -22,8 +22,8 @@ export class TextHud extends Hud {
 
     /** @private */
     _triggerDraw(x, y) {
+        this._onHover(x, y)
         this._onDraw?.(this.x, this.y, this.text)
-        super._triggerDraw(x, y)
     }
 
     /**
