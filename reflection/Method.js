@@ -21,6 +21,7 @@ export class Method {
      */
     constructor(instance, methodName) {
         this.property = instance.class.getDeclaredMethod(methodName)
+        this.property.setAccessible(true)
     }
 
     /**

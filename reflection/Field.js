@@ -30,6 +30,7 @@ export class Field {
      */
     constructor(instance, fieldName) {
         this.property = instance.class.getDeclaredField(fieldName)
+        this.property.setAccessible(true)
     }
 
     /**
