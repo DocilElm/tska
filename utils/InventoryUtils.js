@@ -24,8 +24,8 @@ export const createSkull = (texture) => {
     textures./* appendTag */func_74742_a(textures_0)
 
     properties./* setTag */func_74782_a("textures", textures)
-	skullOwner./* setTag */func_74782_a("Properties", properties)
-	tag./* setTag */func_74782_a("SkullOwner", skullOwner)
+    skullOwner./* setTag */func_74782_a("Properties", properties)
+    tag./* setTag */func_74782_a("SkullOwner", skullOwner)
     itemStack./* setTagCompound */func_77982_d(tag)
 
     return new Item(itemStack)
