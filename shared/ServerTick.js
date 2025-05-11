@@ -36,6 +36,12 @@ let lastTicks = Array(5).fill(0)
  */
 export const getServerTPS = () => Math.max(0, Math.min(20, lastTicks.reduce((a, b) => a + b, 0) / 5))
 
+/**
+ * - Gets the "global" server ticks of the current lobby
+ * @returns {number}
+ */
+export const getTicks = () => ticks
+
 register("worldUnload", () => {
     ticks = 0
     lastCheck = 0
