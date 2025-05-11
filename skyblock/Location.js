@@ -31,7 +31,7 @@ export default new class Location {
             .on("scoreboard", (name) => {
                 if (!/^ (⏣|ф)/.test(name)) return
 
-                const newSubArea = name.toLowerCase()
+                const newSubArea = name
                 if (newSubArea !== this.subarea) {
                     for (let cb of this._onSubarea)
                         cb(newSubArea)
@@ -40,9 +40,10 @@ export default new class Location {
                 this.subarea = newSubArea
             })
             .on("tabadd", (name) => {
-                if (!/^Area|Dungeon: [\w ]+$/.test(name)) return
+                const match = name.match(/^(?:Area|Dungeon): ([\w ]+)$/)
+                if (!match) return
 
-                const newArea = name.toLowerCase().replace(/(area|dungeon): /, "")
+                const newArea = match[1]
 
                 if (newArea !== this.area) {
                     for (let cb of this._onArea)
@@ -77,24 +78,46 @@ export default new class Location {
 
     /**
      * - Checks whether the player is currently at the specified `World`
-     * @param {string} world The world from the `TabList` to check for
+     * @param {string|string[]} world The world from the `TabList` to check for
+     * @param {boolean} lowerCase Whether to force check lower case (`true` by default)
+     * @param {boolean} forceSb Whether to force this returning `true` only if the user is inside skyblock (`true` by default)
      * @returns {boolean}
      */
-    inWorld(world) {
-        if (!World.isLoaded() || !this.area) return false
+    inWorld(world, lowerCase = true, forceSb = true) {
+        if (!World.isLoaded()) return false
+        if (!this.area && forceSb) return false
+        else if (!this.area) return true
 
-        return this.area === world.toLowerCase().removeFormatting()
+        if (Array.isArray(world)) {
+            if (lowerCase) return world.some((it) => it.toLowerCase().removeFormatting() === this.area.toLowerCase())
+            return world.some((it) => it.removeFormatting() === this.area)
+        }
+
+        if (lowerCase) return this.area?.toLowerCase() === world.toLowerCase().removeFormatting()
+
+        return this.area === world.removeFormatting()
     }
 
     /**
      * - Checks whether the player is currently at the specified `Area`
-     * @param {string} area The area from the `Scoreboard` to check for
+     * @param {string|string[]} area The area from the `Scoreboard` to check for
+     * @param {boolean} lowerCase Whether to force check lower case (`true` by default)
+     * @param {boolean} forceSb Whether to force this returning `true` only if the user is inside skyblock (`true` by default)
      * @returns {boolean}
      */
-    inArea(area) {
-        if (!World.isLoaded() || !this.subarea) return false
+    inArea(area, lowerCase = true, forceSb = true) {
+        if (!World.isLoaded()) return false
+        if (!this.subarea && forceSb) return false
+        else if (!this.subarea) return true
 
-        return this.subarea.includes(area.toLowerCase().removeFormatting())
+        if (Array.isArray(area)) {
+            if (lowerCase) return area.some((it) => it.removeFormatting().toLowerCase().includes(this.subarea.toLowerCase()))
+            return area.some((it) => it.removeFormatting().includes(this.subarea))
+        }
+
+        if (lowerCase) return this.subarea.toLowerCase().includes(area.toLowerCase().removeFormatting())
+
+        return this.subarea.includes(area.removeFormatting())
     }
 
     /**
