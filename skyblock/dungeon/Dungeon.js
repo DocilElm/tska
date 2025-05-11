@@ -52,6 +52,23 @@ EventListener.createEvent("puzzlestate")
 InternalEvents.createEvent("mapdata")
 
 /** @typedef {"Mage"|"Archer"|"Berserk"|"Healer"|"Tank"} DungeonClass */
+/**
+  * @typedef {Object} ScoreData
+  * @prop {number} totalSecrets The total secrets of this dungeon
+  * @prop {number} secretsRemaining The secrets remaining of this dungeon
+  * @prop {number} totalRooms The total rooms of this dungeon
+  * @prop {number} deathPenalty
+  * @prop {number} completionRatio
+  * @prop {number} adjustedRooms Essentially completed rooms but with the addition of blood and boss if required
+  * @prop {number} roomsScore
+  * @prop {number} skillScore
+  * @prop {number} secretsScore
+  * @prop {number} exploreScore
+  * @prop {number} bonusScore
+  * @prop {number} score The score of the current Dungeon
+  * @prop {number} maxSecrets The maxmimum secrets of this Dungeon
+  * @prop {number} minSecrets The minimum secrets required for s+ for this Dungeon
+  */
 
 const coerceIn = (v, min, max) => Math.min(Math.max(v, min), max)
 
@@ -655,5 +672,13 @@ export default new class Dungeon {
         this._on300Listeners.push(cb)
 
         return this
+    }
+
+    /**
+     * - Gets the current score data of this Dungeon
+     * @returns {ScoreData}
+     */
+    getScoreData() {
+        return this.scoreData
     }
 }
