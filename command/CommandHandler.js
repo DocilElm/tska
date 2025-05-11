@@ -26,6 +26,8 @@ export class CommandHandler {
         this.aliasFormat = "\n    &6- ${name}"
         /** @private */
         this.errorFormat = "&cCould not find command ${arg} in &b${name}'s &ccommand list"
+        /** @private */
+        this.tabCompletions = {}
 
         // Adding the "help" command since we are the ones supposed to handle that
         this.push("help", "Shows this list", () => {
@@ -146,11 +148,15 @@ export class CommandHandler {
             obj.cb?.call(null, ...args.splice(1))
         })
             .setTabCompletions((arg) => {
-                if (arg.length > 1) return []
                 if (!arg?.[0]) return this.commandNames
 
                 const result = this.commandNames.find((it) => it.startsWith(arg[0].toLowerCase()))
                 if (!result) return []
+                if (arg.length > 1) {
+                    const name = arg[0].toLowerCase()
+                    if (!(name in this.tabCompletions)) return []
+                    return this.tabCompletions[name](...arg.splice(1)) || []
+                }
 
                 return [result]
             })
@@ -225,6 +231,19 @@ export class CommandHandler {
     setAliases(...args) {
         if (!this._register) throw "[tska - CommandHandler] seems like you did not call setName() before-hand"
         this._register.setAliases(args)
+
+        return this
+    }
+
+    /**
+     * - Sets a tab completion for the specified sub command name
+     * @param {string} commandName The sub command name
+     * @param {(...args) => *[]} cb The callback that will run
+     * Note: This has to return an array with strings
+     * @returns {this} this for method chaining
+     */
+    setTabCompletion(commandName, cb) {
+        this.tabCompletions[commandName.toLowerCase()] = cb
 
         return this
     }
