@@ -193,7 +193,7 @@ export class Feature {
      */
     onAreaChange(areaName) {
         if (!this._checkArea(areaName)) return this._unregister()
-        if (!this._checkSubarea(Location.subarea)) return this._unregister()
+        if (!this._checkSubarea(Location.subarea?.toLowerCase())) return this._unregister()
 
         this._register()
 
@@ -208,7 +208,7 @@ export class Feature {
      */
     onSubareaChange(subareaName) {
         if (!this._checkSubarea(subareaName)) return this._unregister()
-        if (!this._checkArea(Location.area)) return this._unregister()
+        if (!this._checkArea(Location.area?.toLowerCase())) return this._unregister()
 
         this._register()
 
