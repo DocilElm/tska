@@ -34,7 +34,7 @@ export default new class Location {
                 const newSubArea = name
                 if (newSubArea !== this.subarea) {
                     for (let cb of this._onSubarea)
-                        cb(newSubArea)
+                        cb(newSubArea.toLowerCase())
                 }
 
                 this.subarea = newSubArea
@@ -47,7 +47,7 @@ export default new class Location {
 
                 if (newArea !== this.area) {
                     for (let cb of this._onArea)
-                        cb(newArea)
+                        cb(newArea.toLowerCase())
                 }
                 this.area = newArea
             })
