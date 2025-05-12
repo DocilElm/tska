@@ -238,12 +238,15 @@ export class CommandHandler {
     /**
      * - Sets a tab completion for the specified sub command name
      * @param {string} commandName The sub command name
-     * @param {(...args) => *[]} cb The callback that will run
+     * @param {(...args: string) => string[]} cb The callback that will run
      * Note: This has to return an array with strings
      * @returns {this} this for method chaining
      */
     setTabCompletion(commandName, cb) {
         this.tabCompletions[commandName.toLowerCase()] = cb
+
+        for (let name of this.commands[commandName].aliases)
+            this.tabCompletions[name] = cb
 
         return this
     }
