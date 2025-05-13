@@ -37,7 +37,7 @@ export class Promise {
     /**
      * - Adds a handler with the specified callback functions to be triggered whenever this promise is `resolved`/`rejected`
      * @template U
-     * @param {(value: ...T) => U | Promise<U>} onFulfilled Triggers this callback whenever the promise is `resolved`
+     * @param {(...args: T[]) => U | Promise<U>} onFulfilled Triggers this callback whenever the promise is `resolved`
      * @param {(reason: ...any) => U | Promise<U>} onRejected Triggers this callback whenever the promise is `rejected`
      * @returns {Promise<U>} Promise
      */
