@@ -60,7 +60,7 @@ LocalStoreImpl.prototype._saveBackup = function _saveBackup() {
 }
 
 /** @type {{ new<T>(moduleName: string, defaultData: T, fileName: string): (T & LocalStoreImpl<T>) } & typeof LocalStoreImpl} */
-export const LocalStore = LocalStoreImpl;
+export const LocalStore = LocalStoreImpl
 
 const data = new LocalStore("tska", {
     LocalStore: {
