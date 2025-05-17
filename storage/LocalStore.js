@@ -1,51 +1,66 @@
 const cachedInstances = []
 
+const moduleNameSym = Symbol("moduleName")
+const fileNameSym = Symbol("fileName")
+
 /**
  * - This data is meant to be edited on the fly as well as gathered from a file
  * - Note: The data is backed up in a folder inside of `.minecraft/config/tska-backup` every 10minutes
  * and whenever the file gets corrupted it attempts to re-set it with the backup one
+ * @template T
+ * @param {string} moduleName
+ * @param {T} [defaultData={}] `{}`
+ * @param {string} [fileName=".data.json"] `".data.json"`
+ * @returns {T & LocalStoreImpl<T>}
  */
-export class LocalStore {
-    constructor(moduleName, defaultData = {}, fileName = ".data.json") {
-        let cachedData = FileLib.read(moduleName, fileName) || FileLib.read(`./config/tska-backup/${moduleName}/${fileName}`)
-        if (!cachedData && FileLib.exists(moduleName, fileName))
-            console.warn(`[TSKA] Seems like your data for module \"${moduleName}\" was corruputed therefore resetted.`)
+function LocalStoreImpl(moduleName, defaultData = {}, fileName = ".data.json") {
+    if (!(this instanceof LocalStoreImpl)) return new LocalStoreImpl(moduleName, defaultData, fileName)
 
-        const parsed = JSON.parse(cachedData || "{}")
-        Object.assign(this, defaultData, parsed)
+    let cachedData = FileLib.read(moduleName, fileName) || FileLib.read(`./config/tska-backup/${moduleName}/${fileName}`)
+    if (!cachedData && FileLib.exists(moduleName, fileName))
+        console.warn(`[TSKA] Seems like your data for module \"${moduleName}\" was corruputed therefore resetted.`)
 
-        /**
-         * - Function that returns the module's `moduleName` and `fileName`
-         * to store the data at
-         * @private
-         * @returns {[string, string]}
-         */
-        this.getModuleData = () => {
-            return [ moduleName, fileName ]
-        }
+    const parsed = JSON.parse(cachedData || "{}")
+    Object.assign(this, defaultData, parsed)
 
-        cachedInstances.push(this)
-    }
+    this[moduleNameSym] = moduleName
+    this[fileNameSym] = fileName
 
-    /**
-     * - This function is mostly for internal use since the dev should not handle this
-     * but it is open to use if you feel like it is better.
-     * - This gets called every time the game unloads automatically
-     * @deprecated
-     */
-    save() {
-        const [ moduleName, fileName ] = this.getModuleData()
+    cachedInstances.push(this)
 
-        FileLib.write(moduleName, fileName, JSON.stringify(this, null, 4), true)
-    }
-
-    /** @private */
-    _saveBackup() {
-        const [ moduleName, fileName ] = this.getModuleData()
-
-        FileLib.write(`./config/tska-backup/${moduleName}/${fileName}`, JSON.stringify(this, null, 4), true)
-    }
+    return this
 }
+
+/**
+ * - Function that returns the module's `moduleName` and `fileName`
+ * to store the data at
+ * @private
+ * @returns {[string, string]}
+ */
+LocalStoreImpl.prototype.getModuleData = () => {
+    return [this[moduleNameSym], this[fileNameSym]]
+}
+/**
+ * - This function is mostly for internal use since the dev should not handle this
+ * but it is open to use if you feel like it is better.
+ * - This gets called every time the game unloads automatically
+ * @deprecated
+ */
+LocalStoreImpl.prototype.save = function save() {
+    const [moduleName, fileName] = this.getModuleData()
+
+    FileLib.write(moduleName, fileName, JSON.stringify(this, null, 4), true)
+}
+
+/** @private */
+LocalStoreImpl.prototype._saveBackup = function _saveBackup() {
+    const [moduleName, fileName] = this.getModuleData()
+
+    FileLib.write(`./config/tska-backup/${moduleName}/${fileName}`, JSON.stringify(this, null, 4), true)
+}
+
+/** @type {{ new<T>(moduleName: string, defaultData: T, fileName: string): (T & LocalStoreImpl<T>) } & typeof LocalStoreImpl} */
+export const LocalStore = LocalStoreImpl;
 
 const data = new LocalStore("tska", {
     LocalStore: {
