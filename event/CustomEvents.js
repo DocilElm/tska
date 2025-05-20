@@ -18,13 +18,48 @@ const checkCriteria = (cb, criteria, formatted, event) => {
     cb(...match.slice(1), formatted, event)
 }
 
-Event.createEvent("command", (cb, commandName) => register("command", cb).setName(commandName))
-Event.createEvent("renderEntity", (cb, entityType) => register("renderEntity", cb).setFilteredClass(entityType))
-Event.createEvent("postRenderEntity", (cb, entityType) => register("postRenderEntity", cb).setFilteredClass(entityType))
-Event.createEvent("stepFps", (cb, fps) => register("step", cb).setFps(fps))
-Event.createEvent("stepDelay", (cb, delay) => register("step", cb).setDelay(delay))
-Event.createEvent("chat", (cb, criteria) => register("chat", cb).setCriteria(criteria))
-Event.createEvent("soundPlay", (cb, criteria) => register("soundPlay", cb).setCriteria(criteria))
+Event.createEvent("command", (cb, commandName) => {
+    const reg = register("command", cb)
+    if (commandName) reg.setName(commandName)
+
+    return reg
+})
+Event.createEvent("renderEntity", (cb, entityType) => {
+    const reg = register("renderEntity", cb)
+    if (entityType) reg.setFilteredClass(entityType)
+
+    return reg
+})
+Event.createEvent("postRenderEntity", (cb, entityType) => {
+    const reg = register("postRenderEntity", cb)
+    if (entityType) reg.setFilteredClass(entityType)
+
+    return reg
+})
+Event.createEvent("stepFps", (cb, fps) => {
+    const reg = register("step", cb)
+    if (fps) reg.setFps(fps)
+
+    return reg
+})
+Event.createEvent("stepDelay", (cb, delay) => {
+    const reg = register("step", cb)
+    if (delay) reg.setDelay(delay)
+
+    return reg
+})
+Event.createEvent("chat", (cb, criteria) => {
+    const reg = register("chat", cb)
+    if (criteria) reg.setCriteria(criteria)
+
+    return reg
+})
+Event.createEvent("soundPlay", (cb, criteria) => {
+    const reg = register("soundPlay", cb)
+    if (criteria) reg.setCriteria(criteria)
+
+    return reg
+})
 
 Event.createEvent("servertick", (cb) => {
     return register("packetReceived", (packet) => {
