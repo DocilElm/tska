@@ -33,7 +33,9 @@ export class Method {
     call(instance, ...params) {
         if (!instance) return console.warn("Reflected Java Methods require an instance parameter to access this caller")
 
-        const value = this.property.invoke(instance, params)
+        const value = arguments.length > 1
+            ? this.property.invoke(instance, ...params)
+            : this.property.invoke(instance)
 
         return value
     }
