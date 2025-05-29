@@ -545,7 +545,7 @@ export class Render3D {
         const renderPos = Render3D.lerpViewEntity(pticks)
         const pos = [ x - renderPos[0], y - renderPos[1], z - renderPos[2] ]
         const textLines = isArray
-            ? text.map(it => (totalWidth += Renderer.getStringWidth(it.removeFormatting())) && it.addColor())
+            ? text.map(it => (totalWidth = Math.max(totalWidth, Renderer.getStringWidth(it.removeFormatting()))) && it.addColor())
             : (totalWidth += Renderer.getStringWidth(text.removeFormatting())) && text.addColor()
         const mult = Client.getMinecraft()./* gameSettings */field_71474_y./* thirdPersonView */field_74320_O == 2 ? -1 : 1
         let distanceScale = scale
