@@ -38,7 +38,7 @@ export class CommandHandler {
                 let comp = new Message(
                     new TextComponent(this.commandFormat.replace("${name}", k).replace("${description}", v.description))
                         .setHover("show_text", `Click to run /${this.mainCommand} ${k}`)
-                        .setClick("run_command", `/${this.mainCommand} ${k}`))
+                        .setClick(v.clickAction, `/${this.mainCommand} ${k}`))
 
                 if ("aliases" in v) {
                     for (let alias of v.aliases) {
@@ -136,7 +136,7 @@ export class CommandHandler {
                 if (obj) break
                 let v = this.commands[k]
 
-                if (k.startsWith(arg)) obj = v
+                if (k.toLowerCase().startsWith(arg)) obj = v
                 if (!obj && "aliases" in v) {
                     for (let alias of v.aliases) {
                         if (alias.startsWith(arg)) obj = v
@@ -172,13 +172,14 @@ export class CommandHandler {
      * @param {string} command The command name
      * @param {string} description The description of the command
      * @param {?(args: ...any) => void} cb The callback to run whenever this command is ran
+     * @param {"run_command"|"suggest_command"|"open_url"|"open_file"|"change_page"} clickAction The action preferred when clicking this command in the help command
      * @returns {this} this for method chaining
      */
-    push(command, description, cb) {
+    push(command, description, cb, clickAction = "run_command") {
         if (typeof description !== "string") throw `[tska - CommandHandler] ${description} is not a valid description`
 
         this.commands[command] = {
-            description, cb, aliases: []
+            description, cb, aliases: [], clickAction
         }
 
         this.commandNames.push(command.toLowerCase())
@@ -195,13 +196,14 @@ export class CommandHandler {
      * @param {string[]} aliases The aliases for this command
      * @param {string} description The description of the command
      * @param {?(args: ...any) => void} cb The callback to run whenever this command is ran
+     * @param {"run_command"|"suggest_command"|"open_url"|"open_file"|"change_page"} clickAction The action preferred when clicking this command in the help command
      * @returns {this} this for method chaining
      */
-    pushWithAlias(command, aliases = [], description, cb) {
+    pushWithAlias(command, aliases = [], description, cb, clickAction = "run_command") {
         if (typeof description !== "string") throw `[tska - CommandHandler] ${description} is not a valid description`
 
         this.commands[command] = {
-            description, cb, aliases
+            description, cb, aliases, clickAction
         }
 
         this.commandNames.push(command.toLowerCase())
