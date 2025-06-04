@@ -30,10 +30,22 @@ export class HudManager {
         this.backgroundColor = [ 0, 0, 0, 150 ]
         /** @private */
         this.drawCenterText = true
+        /** @private */
+        this._onOpenListeners = []
+        /** @private */
+        this._onCloseListeners = []
 
         this.gui.registerClicked(this._onClick.bind(this))
         this.gui.registerScrolled(this._onScroll.bind(this))
         this.gui.registerDraw(this._onDraw.bind(this))
+        this.gui.registerOpened(() => {
+            for (let it of this._onOpenListeners)
+                it()
+        })
+        this.gui.registerClosed(() => {
+            for (let it of this._onCloseListeners)
+                it()
+        })
 
         hudManagers.push(this)
     }
@@ -153,6 +165,26 @@ export class HudManager {
      */
     isOpen() {
         return this.gui.isOpen()
+    }
+
+    /**
+     * - Adds a listener that triggers whenever this [HudManager] opens
+     * @param {() => void} cb
+     * @returns {this} this for method chaining
+     */
+    onOpen(cb) {
+        this._onOpenListeners.push(cb)
+        return this
+    }
+
+    /**
+     * - Adds a listener that triggers whenever this [HudManager] closes
+     * @param {() => void} cb
+     * @returns {this} this for method chaining
+     */
+    onClose(cb) {
+        this._onCloseListeners.push(cb)
+        return
     }
 
     /**
