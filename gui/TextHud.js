@@ -3,9 +3,35 @@ import { Hud } from "./Hud"
 export class TextHud extends Hud {
     constructor(name, obj, text) {
         super(name, obj)
+        /** 
+         * - IMPORTANT! if you're using this field as a setter, please avoid doing so and call `setText` instead
+         * this will set this hud as dirty so the text size can be re-calculated
+         * @private
+         */
         this.text = text
 
         this._getTextSize()
+    }
+
+    /**
+     * - Gets the text string for this [TextHud]
+     * @returns {string}
+     */
+    getText() {
+        return this.text
+    }
+
+    /**
+     * - Sets the text for this [TextHud] as well as calling the function
+     * to re-calculate the size of the text
+     * @param {string} text
+     * @returns {this} this for method chaining
+     */
+    setText(text) {
+        this.text = text
+        this._getTextSize()
+
+        return this
     }
 
     /** @private */
