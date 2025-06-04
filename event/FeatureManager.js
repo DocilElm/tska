@@ -23,7 +23,7 @@ export class FeatureManager {
 
                 if (!feat.configValue) return feat._unregister()
 
-                feat.onSubareaChange(Location.subarea)
+                feat.onSubareaChange(Location.subarea?.toLowerCase())
             }
         })
 
@@ -64,7 +64,7 @@ export class FeatureManager {
         // Inject important data into the obj class
         feat.configName = configName
         feat.configValue = this.config.settings[configName]
-        if (feat.configValue) feat.onSubareaChange(Location.subarea)
+        if (feat.configValue) feat.onSubareaChange(Location.subarea?.toLowerCase())
 
         this.features.push(feat)
 

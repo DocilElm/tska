@@ -35,6 +35,8 @@ export class Feature {
         this._onUnregister = []
         /** @private */
         this._dirty = null
+        /** @private */
+        this._createdAt = Date.now()
     }
 
     /**
@@ -78,7 +80,7 @@ export class Feature {
      */
     _register() {
         if (this.hasRegistered) return this
-        if (!this.events.length) {
+        if (!this.events.length && Date.now() - this._createdAt <= 100) {
             // Schedule this action to the next time there's an actual event
             this._dirty = Date.now()
             return this
@@ -123,7 +125,7 @@ export class Feature {
         if (this.hasRegistered && Date.now() - this._dirty < 50) this._dirty = Date.now()
         if (this._dirty && Date.now() - this._dirty < 100) {
             this._unregister()
-            this.onSubareaChange(Location.subarea)
+            this.onSubareaChange(Location.subarea?.toLowerCase())
             return
         }
 
@@ -223,7 +225,7 @@ export class Feature {
     update() {
         for (let subevent of this.subevents) {
             let [ event, registerWhen ] = subevent
-            if (!registerWhen()) {
+            if (!registerWhen() || !this._checkSubarea(Location.subarea?.toLowerCase()) || !this._checkArea(Location.area?.toLowerCase())) {
                 event.unregister()
                 continue
             }
